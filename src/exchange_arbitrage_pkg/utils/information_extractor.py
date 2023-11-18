@@ -1,5 +1,7 @@
 import pandas as pd
 
+from src.exchange_arbitrage_pkg.broker_utils.binance_data_fetcher import calculate_percentage_diff_bi_cb
+
 
 def binance_coinbase_info_extractor(binance_data, coinbase_data):
     # Ensure coinbase_data is a DataFrame
@@ -45,10 +47,17 @@ def info_extractor_by_dict(binance_data, coinbase_data):
 
 def info_extractor_by_df(binance_df_in, coinbase_df_in):
     coinbase_df = coinbase_df_in.copy()
-    #Todo: Remove the dash from the symbol
     coinbase_df['symbol'] = coinbase_df['symbol'].str.replace('-', '')
     coinbase_df['symbol'] = coinbase_df['symbol'].str.replace('USD', 'USDT')
     combined_df = pd.merge(binance_df_in, coinbase_df, on='symbol', how='inner')
     return combined_df
 
+
+def calculate_diff_and_sort(extracted_info_in):
+    extracted_info = extracted_info_in.copy()
+    extracted_info["price_diff_bi_cb"] = extracted_info["binance_price"] - extracted_info["coinbase_price"]
+    extracted_info['current_price_diff_percentage'] = extracted_info.apply(calculate_percentage_diff_bi_cb, axis=1)
+    result_df = extracted_info[extracted_info['current_price_diff_percentage'] != 0].copy()
+    result_df.sort_values(by=['current_price_diff_percentage'], ascending=[False], inplace=True)
+    return result_df
 

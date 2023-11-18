@@ -1,0 +1,224 @@
+import time
+from datetime import datetime
+from typing import List
+import asyncio
+import cbpro
+import pandas as pd
+
+from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import BinanceAPIKeys
+from src.exchange_arbitrage_pkg.broker_utils.binance_data_fetcher import get_last_24_hour_price, update_data_df, \
+    filter_invalid_symbols
+from src.exchange_arbitrage_pkg.broker_utils.coinbase_utils.coinbase_get_prices import get_latest_prices_coinbase_pro
+from src.exchange_arbitrage_pkg.exchange_class.binance_exchange import BinanceExchange
+from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnClass
+from src.exchange_arbitrage_pkg.utils.information_extractor import calculate_diff_and_sort, info_extractor_by_df
+
+
+class CryptoExArbitrageWithClient:
+    def __init__(self,
+                 binance_exchange_obj,
+                 coinbase_client_sync,  # It can be either sync client, or a public one
+                 experiment_sample_size=None,
+                 column_obj=None,
+                 debug=True):
+        self.binance_exchange = binance_exchange_obj
+        self.binance_client_async = None
+        self.coinbase_client_sync = coinbase_client_sync
+        self.data = None
+        self.debug = debug
+        self.sample_size = experiment_sample_size
+        self.column_obj = column_obj
+        self.binance_price_col = "binance_price"
+        self.coinbase_price_col = "coinbase_price" # Use exchange_price_col in the future
+
+        self.data_collection: List[pd.DataFrame()] = []
+        self.data: pd.DataFrame() = None
+        self.accumulated_data: pd.DataFrame() = None  # Todo: Concatenate new dataframes
+
+    # async def get_order_book_and_volume(self, symbol, depth=100):
+    #     """
+    #     Fetches the order book and trading volume for a given symbol.
+    #
+    #     :param symbol: The trading symbol (e.g., 'BTCUSDT').
+    #     :param depth: Depth of the order book to fetch.
+    #     :return: A dictionary with order book and volume data.
+    #     """
+    #     if not self.binance_client_async:
+    #         self.binance_client_async = await self.binance_exchange.create_async_client()
+    #
+    #     # Fetch order book
+    #     order_book = await self.binance_client_async.get_order_book(symbol=symbol, limit=depth)
+    #
+    #     # Fetch ticker for volume information
+    #     ticker = await self.binance_client_async.get_ticker(symbol=symbol)
+    #
+    #     return {
+    #         'order_book': order_book,
+    #         '24h_volume': ticker['volume']
+    #     }
+
+    # async def get_latest_prices_binance(self):
+    #     if not self.binance_client_async:
+    #         self.binance_client_async = await self.binance_exchange.create_async_client()
+    #
+    #     # Fetch the ticker prices
+    #     tickers = await self.binance_client_async.get_ticker()
+    #
+    #     # Convert the tickers to a Pandas DataFrame
+    #     tickers_df = pd.DataFrame(tickers)
+    #
+    #     tickers_df = tickers_df.rename(columns={'lastPrice': 'binance_price'})
+    #     # Rename the columns with the specified naming convention
+    #     rename_dict = {col:
+    #                        (f'binance_{col}_24' if col not in ['symbol', 'binance_price']
+    #                                             else col)
+    #                     for col in tickers_df.columns}
+    #     binance_df = tickers_df.rename(columns=rename_dict)
+    #
+    #     # Apply the '_24h' postfix to all columns except 'symbol' and 'binance_price'
+    #     # binance_df.columns = [col + '_24h' if col not in ['symbol', 'binance_price'] else col for col in
+    #     #                       binance_df.columns]
+    #
+    #     return binance_df
+
+    async def get_latest_prices_binance(self):
+        if not self.binance_client_async:
+            self.binance_client_async = await self.binance_exchange.create_async_client()
+
+        # Fetch the ticker prices
+        tickers = await self.binance_client_async.get_ticker()
+
+        # Convert the tickers to a Pandas DataFrame
+        tickers_df = pd.DataFrame(tickers)
+
+        # Filter symbols based on the specified criteria
+        filtered_df = tickers_df[tickers_df['symbol'].str.contains("US") & ~tickers_df['symbol'].str.contains(r'\d')]
+
+        # Rename the columns with the specified naming convention
+        rename_dict = {col: (f'binance_{col}_24h' if col not in ['symbol', 'lastPrice'] else (
+            'binance_price' if col == 'lastPrice' else col)) for col in filtered_df.columns}
+        binance_df = filtered_df.rename(columns=rename_dict)
+
+        return binance_df
+
+    async def get_latest_prices_binance_old(self):
+        if not self.binance_client_async:
+            self.binance_client_async = await self.binance_exchange.create_async_client()
+
+        # Fetch the ticker prices
+        tickers = await self.binance_client_async.get_ticker()
+        filtered_tickers = filter_invalid_symbols(tickers)
+
+        tickers_series = pd.Series(filtered_tickers)
+        binance_df = tickers_series.reset_index()
+        binance_df.columns = ['symbol', 'binance_price']
+
+        return binance_df
+
+    def _get_latest_prices_coinbase_pro(self):
+        cb_price_df = get_latest_prices_coinbase_pro(self.coinbase_client_sync, self.sample_size)
+        cb_price_df_not_nan = cb_price_df.dropna(subset=['price']).copy()
+        cb_price_df_not_nan.rename(columns={'id': 'symbol', 'price': 'coinbase_price'}, inplace=True)
+        return cb_price_df_not_nan
+
+    async def get_data_from_exchanges(self):
+        binance_prices = await self.get_latest_prices_binance()
+        binance_prices_old = await self.get_latest_prices_binance_old()
+        coinbase_prices = self._get_latest_prices_coinbase_pro()
+        combined_df = info_extractor_by_df(binance_prices, coinbase_prices)
+        combined_df['current_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Convert 'binance_price' and 'coinbase_price' to numeric values
+        combined_df['binance_price'] = pd.to_numeric(combined_df['binance_price'], errors='coerce')
+        combined_df['coinbase_price'] = pd.to_numeric(combined_df['coinbase_price'], errors='coerce')
+        return combined_df
+
+    async def add_last_24_h_price_change_info(self, combined_df):
+        last_24_h_price_df = await get_last_24_hour_price(self.binance_client_async)
+        return pd.merge(combined_df, last_24_h_price_df, on="symbol", how="inner")
+
+    def update_and_sort_data(self, new_df):
+        new_data_df = update_data_df(original_df_in=self.data, new_df=new_df)
+        new_data_df.sort_values(by=['current_price_diff_percentage', 'recency', 'price_diff_bi_cb'],
+                                ascending=[False, False, False], inplace=True)
+        return new_data_df
+
+    async def create_differential_df(self):
+        # Step 1- Get the data from both exchanges
+        extracted_info = await self.get_data_from_exchanges()
+
+        # Step 2- Calculate the difference, diff percentage, and sort the data
+        combined_df = calculate_diff_and_sort(extracted_info)
+
+        # step 3- Add the recncy column
+        combined_df['recency'] = 0
+
+        # Step 4- Add the last 24 hours price change info
+        # combined_df_w_24_h_info = await self.add_last_24_h_price_change_info(combined_df)
+        combined_df_w_24_h_info = combined_df
+        # ToDo: Exclude the ones with price = 0
+
+        # Step 5- Update the data
+        self.data = self.update_and_sort_data(new_df=combined_df_w_24_h_info)
+
+        if self.debug:
+            print("\n")
+            num_row_to_show = 10
+            selected_cols = ['current_time', 'symbol', 'binance_price', 'coinbase_price', 'price_diff_bi_cb',
+                             'current_price_diff_percentage', self.column_obj.bi_price_change_24h, 'recency']
+            print("The extracted info is: ")
+            print(combined_df_w_24_h_info[selected_cols].head(num_row_to_show).to_string())
+            print("The updated data is: ")
+            print(self.data[selected_cols].head(num_row_to_show).to_string())
+            print("*" * 60)
+        return self.data
+
+    async def run(self, run_number=10, apply_function=None, storage_dir=None):
+        sleep_time = 2
+        counter = 0
+        # Run the arbitrage detection for a specified number of times
+        if run_number is None:
+            while True:
+                result_df = await self.create_differential_df()
+                if apply_function is not None:
+                    apply_function(result_df)
+                if storage_dir is not None:
+                    result_df.to_csv(f"{storage_dir}/data_{counter}.csv")
+                    # result_df.to_csv(f"results/data_{counter}.csv")
+                time.sleep(sleep_time)
+        else:
+            for i in range(run_number):
+                result_df = await self.create_differential_df()
+                if apply_function is not None:
+                    apply_function(result_df)
+                if storage_dir is not None:
+                    result_df.to_csv(f"{storage_dir}/data_{counter}.csv")
+                    # result_df.to_csv(f"results/data_{counter}.csv")
+                time.sleep(sleep_time)
+            counter += 1
+
+
+def print_for_testing(df):
+    print("\n")
+    print("Apply function (Print for testing)... ")
+    print(df.head(10).to_string())
+
+
+if __name__ == '__main__':
+    DEBUG = True
+    sample_size = 50 # Just for testing
+    run_number = 10
+
+    column_obj = ColumnClass()
+    binance_exchange = BinanceExchange(BinanceAPIKeys())
+    coinbase_exchange = cbpro.PublicClient()
+
+    arb_bot = CryptoExArbitrageWithClient(binance_exchange_obj=binance_exchange,
+                                          coinbase_client_sync=coinbase_exchange,
+                                          experiment_sample_size=sample_size,
+                                          column_obj=column_obj,
+                                          debug=DEBUG)
+    asyncio.run(arb_bot.run(run_number=run_number,
+                            apply_function=print_for_testing,
+                            storage_dir=None))
+    # data = await arb_bot.get_order_book_and_volume("BTCUSDT", 100)
+    # print(data)

@@ -1,30 +1,63 @@
 import os
+from abc import ABC
+from enum import Enum
 
-class CoinbaseAPIKeys:
+
+class APIAuthClass(ABC):
     def __init__(self):
-        self.api_key_coinbase = str(os.environ.get("coinbase_api"))
-        self.secret_key_coinbase = str(os.environ.get("coinbase_secret"))
-# api_key_coinbase = str(os.environ.get("coinbase_api"))
-# secret_key_coinbase = str(os.environ.get("coinbase_secret"))
+        self.api_key = None
+        self.secret_key = None
+        self.pass_phrase = None
+        self.is_testnet = None
 
 
-class BinanceAPIKeys:
+class CoinbaseAPIKeys(APIAuthClass):
     def __init__(self):
-        self.api_key_binance_read_only = str(os.environ.get("b_api_read_only"))
-        self.secret_key_binance_read_only = str(os.environ.get("b_secret_read_only"))
+        super().__init__()
+        self.api_key = str(os.environ.get("coinbase_api"))
+        self.secret_key = str(os.environ.get("coinbase_secret"))
+        self.is_testnet = False
 
-        self.api_key_binance = str(os.environ.get("binance_api"))
-        self.secret_key_binance = str(os.environ.get("binance_secret"))
 
-        self.api_key_binance_testnet = str(os.environ.get("binance_api_testnet"))
-        self.secret_key_binance_testnet = str(os.environ.get("binance_secret_testnet"))
-# api_key_binance_read_only = str(os.environ.get("b_api_read_only"))
-# secret_key_binance_read_only = str(os.environ.get("b_secret_read_only"))
-#
-# api_key_binance = str(os.environ.get("binance_api"))
-# secret_key_binance = str(os.environ.get("binance_secret"))
-#
-#
-# api_key_binance_testnet = str(os.environ.get("binance_api_testnet"))
-# secret_key_binance_testnet = str(os.environ.get("binance_secret_testnet"))
 
+class CoinbaseProAPIKeys(APIAuthClass):
+    def __init__(self):
+        super().__init__()
+        self.api_key = str(os.environ.get("Coinbase_pro_api_key"))
+        self.secret_key = str(os.environ.get("Coinbase_pro_decret_key"))
+        self.pass_phrase = str(os.environ.get("Cpinbase_pro_pass_phrase"))
+        self.is_testnet = False
+
+
+
+class BinanceAPIKeys(APIAuthClass):
+    def __init__(self):
+        super().__init__()
+        self.api_key = str(os.environ.get("binance_api"))
+        self.secret_key = str(os.environ.get("binance_secret"))
+        self.is_testnet = False
+
+
+
+class BinanceAPIKeysReadOnly(APIAuthClass):
+    def __init__(self):
+        super().__init__()
+        self.api_key = str(os.environ.get("b_api_read_only"))
+        self.secret_key = str(os.environ.get("b_secret_read_only"))
+        self.is_testnet = False
+
+
+
+class BinanceAPIKeysTestNet(APIAuthClass):
+    def __init__(self):
+        super().__init__()
+        self.api_key = str(os.environ.get("binance_api_testnet"))
+        self.secret_key = str(os.environ.get("binance_secret_testnet"))
+        self.is_testnet = True
+
+
+
+# if __name__ == '__main__':
+#     api_obj = CoinbaseProAPIKeys()
+#     api_key_coinbase = api_obj.pass_phrase
+#     print(api_key_coinbase)
