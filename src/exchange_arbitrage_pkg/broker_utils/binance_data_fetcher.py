@@ -1,5 +1,7 @@
 import pandas as pd
 
+from src.exchange_arbitrage_pkg.utils.calculation_utils import calculate_percentage_difference_2_values
+
 
 def get_usa_symbols(self):
     info = self.client.get_exchange_info()
@@ -25,53 +27,36 @@ def add_exchange_info(df_in, client):
     return combined_df
 
 
-def calculate_percentage_difference(row):
-    smaller_price = min(row['coinbase_price'], row['binance_price'])
-    price_difference = abs(row['coinbase_price'] - row['binance_price'])
-    if smaller_price != 0:
-        return (price_difference / smaller_price) * 100
-    else:
-        return None  # or 0, depending on how you want to handle division by zero
+def calculate_percentage_diff_bi_cb(row):
+    return calculate_percentage_difference_2_values(row['binance_price'], row['coinbase_price'])
 
 
 def update_data_df(original_df_in, new_df):
     if original_df_in is None or new_df is None:
         return new_df
-    if len(original_df_in) == 0 or len(new_df) == 0:
+    if len(original_df_in) == 0:
         return new_df
 
-    original_df = original_df_in.copy()
-    original_df = original_df[original_df['symbol'].isin(new_df['symbol'])]
+    # Keep only rows in original_df where the symbol is in new_df
+    original_df = original_df_in[original_df_in['symbol'].isin(new_df['symbol'])].copy()
 
-    # Update 'recency' by decreasing its value by one, but not less than zero
-    # Check if 'recency' column exists
-    if 'recency' in original_df.columns:
-        # Update 'recency' by decreasing its value by one
-        original_df['recency'] = original_df['recency'].apply(lambda x: x-1)
-    else:
-        # Create 'recency' column and set it to zero
-        original_df['recency'] = 0
+    # Decrease recency by one, ensuring it does not go below zero
+    # original_df['recency'] = original_df['recency'].apply(lambda x: x - 1)
+    original_df.loc[:, 'recency'] = original_df['recency'].apply(lambda x: x - 1)
 
-    # Update A with new values from B
-    original_df.update(new_df)
+    # Find new symbols in new_df not in original_df
+    new_symbols = new_df[~new_df['symbol'].isin(original_df['symbol'])]
+
+    # Concatenate new symbols to original_df
+    original_df = pd.concat([original_df, new_symbols], ignore_index=True)
+
+    # Update values from new_df, except for 'recency'
+    # Create a temporary DataFrame with columns excluding 'recency'
+    temp_new_df = new_df.drop(columns='recency', errors='ignore')
+    original_df.update(temp_new_df)
+
     return original_df
 
-
-# async def get_last_24_hour_price(client):
-#     # tickers = client.get_all_tickers()
-#     tickers = await client.get_all_tickers()
-#
-#
-#     # Convert the tickers to a Pandas DataFrame
-#     df = pd.DataFrame(tickers)
-#
-#     # Filter down to only USDT pairs
-#     df = df[df['symbol'].str.endswith('USDT')]
-#
-#     # Calculate the price change percentage
-#     df['price_change_24h'] = df['priceChangePercent'].astype(float)
-#
-#     return df
 
 async def get_last_24_hour_price(client):
     # Use the get_ticker method to get 24-hour price change

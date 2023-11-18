@@ -16,3 +16,7 @@ def coinbase_to_binance(coinbase_symbol):
     """
     # Binance uses 'USDT' to represent Tether pairs instead of 'USD' and no separator
     return coinbase_symbol.replace('-USD', 'USDT')
+
+
+def extract_symbol(row):
+    return row['symbol'].values[0]
