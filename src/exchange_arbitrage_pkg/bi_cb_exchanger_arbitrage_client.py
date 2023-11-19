@@ -5,25 +5,26 @@ import asyncio
 import cbpro
 import pandas as pd
 
-from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import BinanceAPIKeys
+from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import BinanceAPIKeys, CoinbaseProAPIKeys
 from src.exchange_arbitrage_pkg.broker_utils.binance_data_fetcher import get_last_24_hour_price, update_data_df, \
     filter_invalid_symbols
 from src.exchange_arbitrage_pkg.broker_utils.coinbase_utils.coinbase_get_prices import get_latest_prices_coinbase_pro
 from src.exchange_arbitrage_pkg.exchange_class.binance_exchange import BinanceExchange
-from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnClass
+from src.exchange_arbitrage_pkg.exchange_class.coinbase_exchange import CoinbaseExchange
+from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
 from src.exchange_arbitrage_pkg.utils.information_extractor import calculate_diff_and_sort, info_extractor_by_df
 
 
 class CryptoExArbitrageWithClient:
     def __init__(self,
                  binance_exchange_obj,
-                 coinbase_client_sync,  # It can be either sync client, or a public one
+                 coinbase_exchange_obj,  # It can be either sync client, or a public one
+                 column_obj,
                  experiment_sample_size=None,
-                 column_obj=None,
                  debug=True):
         self.binance_exchange = binance_exchange_obj
         self.binance_client_async = None
-        self.coinbase_client_sync = coinbase_client_sync
+        self.coinbase_client_sync = coinbase_exchange_obj.public_client
         self.data = None
         self.debug = debug
         self.sample_size = experiment_sample_size
@@ -34,52 +35,6 @@ class CryptoExArbitrageWithClient:
         self.data_collection: List[pd.DataFrame()] = []
         self.data: pd.DataFrame() = None
         self.accumulated_data: pd.DataFrame() = None  # Todo: Concatenate new dataframes
-
-    # async def get_order_book_and_volume(self, symbol, depth=100):
-    #     """
-    #     Fetches the order book and trading volume for a given symbol.
-    #
-    #     :param symbol: The trading symbol (e.g., 'BTCUSDT').
-    #     :param depth: Depth of the order book to fetch.
-    #     :return: A dictionary with order book and volume data.
-    #     """
-    #     if not self.binance_client_async:
-    #         self.binance_client_async = await self.binance_exchange.create_async_client()
-    #
-    #     # Fetch order book
-    #     order_book = await self.binance_client_async.get_order_book(symbol=symbol, limit=depth)
-    #
-    #     # Fetch ticker for volume information
-    #     ticker = await self.binance_client_async.get_ticker(symbol=symbol)
-    #
-    #     return {
-    #         'order_book': order_book,
-    #         '24h_volume': ticker['volume']
-    #     }
-
-    # async def get_latest_prices_binance(self):
-    #     if not self.binance_client_async:
-    #         self.binance_client_async = await self.binance_exchange.create_async_client()
-    #
-    #     # Fetch the ticker prices
-    #     tickers = await self.binance_client_async.get_ticker()
-    #
-    #     # Convert the tickers to a Pandas DataFrame
-    #     tickers_df = pd.DataFrame(tickers)
-    #
-    #     tickers_df = tickers_df.rename(columns={'lastPrice': 'binance_price'})
-    #     # Rename the columns with the specified naming convention
-    #     rename_dict = {col:
-    #                        (f'binance_{col}_24' if col not in ['symbol', 'binance_price']
-    #                                             else col)
-    #                     for col in tickers_df.columns}
-    #     binance_df = tickers_df.rename(columns=rename_dict)
-    #
-    #     # Apply the '_24h' postfix to all columns except 'symbol' and 'binance_price'
-    #     # binance_df.columns = [col + '_24h' if col not in ['symbol', 'binance_price'] else col for col in
-    #     #                       binance_df.columns]
-    #
-    #     return binance_df
 
     async def get_latest_prices_binance(self):
         if not self.binance_client_async:
@@ -156,6 +111,7 @@ class CryptoExArbitrageWithClient:
         # combined_df_w_24_h_info = await self.add_last_24_h_price_change_info(combined_df)
         combined_df_w_24_h_info = combined_df
         # ToDo: Exclude the ones with price = 0
+        #ToDo: The volum is missing!
 
         # Step 5- Update the data
         self.data = self.update_and_sort_data(new_df=combined_df_w_24_h_info)
@@ -205,20 +161,22 @@ def print_for_testing(df):
 
 if __name__ == '__main__':
     DEBUG = True
-    sample_size = 50 # Just for testing
+    sample_size = None # Just for testing
     run_number = 10
 
-    column_obj = ColumnClass()
+    col_obj = ColumnInfoClass()
     binance_exchange = BinanceExchange(BinanceAPIKeys())
-    coinbase_exchange = cbpro.PublicClient()
+    # coinbase_exchange = cbpro.PublicClient()
+
+    coinbase_exchange = CoinbaseExchange(CoinbaseProAPIKeys())
 
     arb_bot = CryptoExArbitrageWithClient(binance_exchange_obj=binance_exchange,
-                                          coinbase_client_sync=coinbase_exchange,
+                                          coinbase_exchange_obj=coinbase_exchange,
                                           experiment_sample_size=sample_size,
-                                          column_obj=column_obj,
+                                          column_obj=col_obj,
                                           debug=DEBUG)
     asyncio.run(arb_bot.run(run_number=run_number,
-                            apply_function=print_for_testing,
+                            apply_function=None, #print_for_testing
                             storage_dir=None))
     # data = await arb_bot.get_order_book_and_volume("BTCUSDT", 100)
     # print(data)

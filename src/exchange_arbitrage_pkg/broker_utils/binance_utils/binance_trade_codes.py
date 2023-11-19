@@ -3,11 +3,14 @@ import asyncio
 
 
 async def check_balance(client, symbol):
+    balance = None
     try:
         balance = client.get_asset_balance(asset=symbol)
-        return balance
+        # return balance
     except Exception as e:
         print(f"Error checking balance for {symbol} on Binance: {e}")
+
+    return balance
 
 
 async def place_limit_order(client, symbol, side, quantity, price):

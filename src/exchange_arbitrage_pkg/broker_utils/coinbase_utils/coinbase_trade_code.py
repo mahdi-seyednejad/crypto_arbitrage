@@ -1,15 +1,15 @@
 import cbpro
-async def check_balance_coinbase(client, symbol):
-    try:
-        def get_accounts():
-            return client.get_accounts()
-
-        accounts = await async_wrap(get_accounts)
-        for acc in accounts:
-            if acc.get('currency') == symbol:
-                return acc
-    except Exception as e:
-        print(f"Error checking balance for {symbol} on Coinbase Pro: {e}")
+# async def check_balance_coinbase(client, symbol):
+#     try:
+#         def get_accounts():
+#             return client.get_accounts()
+#
+#         accounts = await async_wrap(get_accounts)
+#         for acc in accounts:
+#             if acc.get('currency') == symbol:
+#                 return acc
+#     except Exception as e:
+#         print(f"Error checking balance for {symbol} on Coinbase Pro: {e}")
 
 
 async def check_balance_coinbase(client, symbol):

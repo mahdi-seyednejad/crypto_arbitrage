@@ -1,6 +1,7 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import cbpro
+import pandas as pd
 
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
 from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
@@ -65,7 +66,10 @@ class CoinbaseAsyncClient(CoinbaseBaseSyncClient):
 
 class CoinbaseExchange(ExchangeAbstractClass):
     def __init__(self, api_auth_obj: APIAuthClass):
-        super().__init__(ExchangeNames.Binance, api_auth_obj)
+        super().__init__(ExchangeNames.Coinbase, api_auth_obj)
+        self.vol_col_key = "coinbase_volume_col"
+
+        self.public_client = cbpro.PublicClient()
         if self.api_auth_obj.is_testnet:
             sandbox_url = "https://api-public.sandbox.pro.coinbase.com"
             self.client = CoinbaseBaseSyncClient(key=self.api_auth_obj.api_key,
@@ -87,5 +91,36 @@ class CoinbaseExchange(ExchangeAbstractClass):
                                                     b64secret=self.api_auth_obj.secret_key,
                                                     passphrase=self.api_auth_obj.pass_phrase)
 
+    def create_async_client(self):
+        return CoinbaseAsyncClient(key=self.api_auth_obj.api_key,
+                                   b64secret=self.api_auth_obj.secret_key,
+                                   passphrase=self.api_auth_obj.pass_phrase)
 
+    def get_order_book(self, symbol, level=2):
+        order_book = self.client.get_product_order_book(product_id=symbol, level=level)
 
+        # Adding 'side' column and combining bids and asks
+        bids_df = pd.DataFrame(order_book['bids'], columns=['price', 'volume', 'num_orders'])
+        bids_df['side'] = 'buy'
+        asks_df = pd.DataFrame(order_book['asks'], columns=['price', 'volume', 'num_orders'])
+        asks_df['side'] = 'sell'
+
+        # Combine and convert types
+        combined_df = pd.concat([bids_df, asks_df])
+        combined_df[['price', 'volume']] = combined_df[['price', 'volume']].apply(pd.to_numeric)
+
+        return combined_df
+
+    def get_order_book_bids_and_ask_df(self, symbol, level=2):
+        # Fetch order book from Coinbase
+        order_book = self.client.get_product_order_book(product_id=symbol, level=level)
+
+        # Create DataFrames for bids and asks
+        bids_df = pd.DataFrame(order_book['bids'], columns=['price', 'quantity', 'num_orders'])
+        asks_df = pd.DataFrame(order_book['asks'], columns=['price', 'quantity', 'num_orders'])
+
+        # Convert price and quantity to numeric types
+        bids_df[['price', 'quantity']] = bids_df[['price', 'quantity']].apply(pd.to_numeric)
+        asks_df[['price', 'quantity']] = asks_df[['price', 'quantity']].apply(pd.to_numeric)
+
+        return bids_df, asks_df
