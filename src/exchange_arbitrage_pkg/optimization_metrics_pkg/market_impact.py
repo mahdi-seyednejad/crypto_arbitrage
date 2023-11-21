@@ -13,6 +13,8 @@ def calculate_market_impact(order_book, sell_amount):
     # Update the sell amount after each trade
     order_book['sell_amount_remaining'] = sell_amount - order_book['trade_volume'].cumsum()
     order_book = order_book[order_book['sell_amount_remaining'] > 0]
+    if order_book.empty:
+        return None  # Return a default value when order_book is empty
 
     # Calculate total trade volume and cost
     total_volume = order_book['trade_volume'].sum()

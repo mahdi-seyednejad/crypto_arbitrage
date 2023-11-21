@@ -14,14 +14,26 @@ class TradeRunner:
         self.exchange_machines = exchange_machines
         self.debug = debug
 
+    # async def run_all_trades(self):
+    #     for machine in self.exchange_machines:
+    #         arbitrage_trade = machine.create_arbitrage_function()
+    #         await arbitrage_trade(self.debug)
+
     async def run_all_trades(self):
+        tasks = []
         for machine in self.exchange_machines:
             arbitrage_trade = machine.create_arbitrage_function()
             # Example usage, you would replace 'symbol' and 'quantity' with actual values
-            await arbitrage_trade(self.debug)
+            tasks.append(asyncio.create_task(arbitrage_trade(self.debug)))
 
-    def execute(self):
-        asyncio.run(self.run_all_trades())
+        # Run tasks concurrently
+        await asyncio.gather(*tasks)
+
+    # def execute_asyncio(self):
+    #     asyncio.run(self.run_all_trades())
+
+    async def execute(self):
+        await self.run_all_trades()
 
 # class TradeRunner:
 #     def __init__(self,

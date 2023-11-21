@@ -8,10 +8,12 @@ class TradeHyperParameter:
                  acceptable_slippage: float = 0.5,
                  price_range_percent: float = 0.5,
                  initial_budget: float = 1000.0,
+                 outlier_threshold: float = 2.5,
                  ):
         self.trade_bucket_size = trade_bucket_size
         self.order_book_fetch_level = order_book_fetch_level
-        self.acceptable_slippage = acceptable_slippage
+        self.slippage_factor = acceptable_slippage
         self.price_range_percent = price_range_percent
         self.initial_budget = initial_budget
+        self.outlier_threshold = outlier_threshold
 

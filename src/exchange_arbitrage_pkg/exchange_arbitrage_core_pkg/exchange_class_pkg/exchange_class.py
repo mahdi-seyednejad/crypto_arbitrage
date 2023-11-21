@@ -1,4 +1,3 @@
-from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
 from src.exchange_arbitrage_pkg.broker_utils.quantity_calculation import calculate_quantity
 from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.trade_type_package.trade_class import Trade
 from src.exchange_arbitrage_pkg.trade_runner_package.trade_runner_helpers import execute_trade

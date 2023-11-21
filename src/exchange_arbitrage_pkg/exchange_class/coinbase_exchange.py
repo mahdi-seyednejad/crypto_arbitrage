@@ -6,6 +6,7 @@ import pandas as pd
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
 from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
 from src.exchange_arbitrage_pkg.exchange_class.base_exchange_class import ExchangeAbstractClass
+from src.exchange_arbitrage_pkg.utils.binance_coinbase_convertor import convert__symbol_bi_to_cb
 
 
 class CoinbaseBaseSyncClient(cbpro.AuthenticatedClient):
@@ -97,6 +98,7 @@ class CoinbaseExchange(ExchangeAbstractClass):
                                    passphrase=self.api_auth_obj.pass_phrase)
 
     def get_order_book(self, symbol, level=2):
+        symbol = convert__symbol_bi_to_cb(symbol)
         order_book = self.client.get_product_order_book(product_id=symbol, level=level)
 
         # Adding 'side' column and combining bids and asks

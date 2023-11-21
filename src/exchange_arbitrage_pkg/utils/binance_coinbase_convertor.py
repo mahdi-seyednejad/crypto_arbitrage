@@ -1,4 +1,4 @@
-def binance_to_coinbase(binance_symbol):
+def convert__symbol_bi_to_cb(binance_symbol):
     """
     Convert a Binance symbol pair to Coinbase format.
     Binance format example: 'BTCUSDT'
@@ -20,3 +20,5 @@ def coinbase_to_binance(coinbase_symbol):
 
 def extract_symbol(row):
     return row['symbol'].values[0]
+
+

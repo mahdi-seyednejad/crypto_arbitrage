@@ -7,6 +7,7 @@ from src.exchange_arbitrage_pkg.symbol_arbitrage_eval_pkg.symbol_evaluator impor
 from src.exchange_arbitrage_pkg.trade_runner_package.trade_runner_base import TradeRunner
 from src.exchange_arbitrage_pkg.utils.binance_coinbase_convertor import extract_symbol
 from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
+from src.exchange_arbitrage_pkg.utils.exchange_picker import pick_exchange
 from src.exchange_arbitrage_pkg.utils.hyper_parameters.trade_hyper_parameter_class import TradeHyperParameter
 
 
@@ -25,6 +26,9 @@ class ArbitrageExecutor:
 
         self.is_good_to_trade_col = column_info_obj.symbol_eval_col_obj.is_good_to_trade_col
 
+    def _get_exchange(self, exchange_name):
+        return pick_exchange(exchange_name, self.exchange_list)
+
     def get_bucket_organized_df(self, df_in):
         df = df_in.copy()
         sorting_col_tuples = [
@@ -42,19 +46,18 @@ class ArbitrageExecutor:
         exchange_machines = []
         exchange_machine = None
         for index, row in df.iterrows():
-            symbol = extract_symbol(row)
             if row[self.col_info_obj.price_diff_col] > 0:  # Binance is more expensive => Binance is the seller
                 exchange_machine = ExchangeMachine(name="Coinbase_to_Binance",
-                                                   src_exchange_platform=ExchangeNames.Binance,
-                                                   dst_exchange_platform=ExchangeNames.Coinbase,
+                                                   src_exchange_platform=self._get_exchange(ExchangeNames.Binance),
+                                                   dst_exchange_platform=self._get_exchange(ExchangeNames.Coinbase),
                                                    row=row,
                                                    col_info_obj=self.col_info_obj,
                                                    budget=self.trade_hy_params_obj.initial_budget)
 
             elif row[self.col_info_obj.price_diff_col] < 0:  # Coinbase is more expensive => Coinbase is the seller
                 exchange_machine = ExchangeMachine(name="Binance_to_Coinbase",
-                                                   src_exchange_platform=ExchangeNames.Coinbase,
-                                                   dst_exchange_platform=ExchangeNames.Binance,
+                                                   src_exchange_platform=self._get_exchange(ExchangeNames.Coinbase),
+                                                   dst_exchange_platform=self._get_exchange(ExchangeNames.Binance),
                                                    row=row,
                                                    col_info_obj=self.col_info_obj,
                                                    budget=self.trade_hy_params_obj.initial_budget)
@@ -74,10 +77,10 @@ class ArbitrageExecutor:
         # df_ranked = self.symbol_evaluator_obj.rank_best_symbols(df_symbol_eval)
         return self._create_arbitrage_plan(df_ranked)
 
-    def main_execute_from_df(self, df_in):  # The main function that gets the dataframe
+    async def main_execute_from_df(self, df_in):  # The main function that gets the dataframe
         exchange_machines = self.run_per_bucket(df_in)
         trade_runner = TradeRunner(exchange_machines, self.debug)
-        trade_runner.execute()
+        await trade_runner.execute()
 
 # If you use a crypto for hft, and it is still on the top of the diff_df,
 # then you can do it again.

@@ -56,20 +56,6 @@ class CryptoExArbitrageWithClient:
 
         return binance_df
 
-    async def get_latest_prices_binance_old(self):
-        if not self.binance_client_async:
-            self.binance_client_async = await self.binance_exchange.create_async_client()
-
-        # Fetch the ticker prices
-        tickers = await self.binance_client_async.get_ticker()
-        filtered_tickers = filter_invalid_symbols(tickers)
-
-        tickers_series = pd.Series(filtered_tickers)
-        binance_df = tickers_series.reset_index()
-        binance_df.columns = ['symbol', 'binance_price']
-
-        return binance_df
-
     def _get_latest_prices_coinbase_pro(self):
         cb_price_df = get_latest_prices_coinbase_pro(self.coinbase_client_sync, self.sample_size)
         cb_price_df_not_nan = cb_price_df.dropna(subset=['price']).copy()
@@ -78,7 +64,6 @@ class CryptoExArbitrageWithClient:
 
     async def get_data_from_exchanges(self):
         binance_prices = await self.get_latest_prices_binance()
-        binance_prices_old = await self.get_latest_prices_binance_old()
         coinbase_prices = self._get_latest_prices_coinbase_pro()
         combined_df = info_extractor_by_df(binance_prices, coinbase_prices)
         combined_df['current_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -87,9 +72,9 @@ class CryptoExArbitrageWithClient:
         combined_df['coinbase_price'] = pd.to_numeric(combined_df['coinbase_price'], errors='coerce')
         return combined_df
 
-    async def add_last_24_h_price_change_info(self, combined_df):
-        last_24_h_price_df = await get_last_24_hour_price(self.binance_client_async)
-        return pd.merge(combined_df, last_24_h_price_df, on="symbol", how="inner")
+    # async def add_last_24_h_price_change_info(self, combined_df):
+    #     last_24_h_price_df = await get_last_24_hour_price(self.binance_client_async)
+    #     return pd.merge(combined_df, last_24_h_price_df, on="symbol", how="inner")
 
     def update_and_sort_data(self, new_df):
         new_data_df = update_data_df(original_df_in=self.data, new_df=new_df)
@@ -136,7 +121,7 @@ class CryptoExArbitrageWithClient:
             while True:
                 result_df = await self.create_differential_df()
                 if apply_function is not None:
-                    apply_function(result_df)
+                    await apply_function(result_df)
                 if storage_dir is not None:
                     result_df.to_csv(f"{storage_dir}/data_{counter}.csv")
                     # result_df.to_csv(f"results/data_{counter}.csv")
@@ -145,7 +130,7 @@ class CryptoExArbitrageWithClient:
             for i in range(run_number):
                 result_df = await self.create_differential_df()
                 if apply_function is not None:
-                    apply_function(result_df)
+                    await apply_function(result_df)
                 if storage_dir is not None:
                     result_df.to_csv(f"{storage_dir}/data_{counter}.csv")
                     # result_df.to_csv(f"results/data_{counter}.csv")
