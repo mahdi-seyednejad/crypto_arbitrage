@@ -1,6 +1,5 @@
 import os
 from abc import ABC
-from enum import Enum
 
 
 class APIAuthClass(ABC):
@@ -51,7 +50,4 @@ class BinanceAPIKeysTestNet(APIAuthClass):
         self.secret_key = str(os.environ.get("binance_secret_testnet"))
         self.is_testnet = True
 
-# if __name__ == '__main__':
-#     api_obj = CoinbaseProAPIKeys()
-#     api_key_coinbase = api_obj.pass_phrase
-#     print(api_key_coinbase)
+#

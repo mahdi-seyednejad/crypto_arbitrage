@@ -41,7 +41,7 @@ def get_order_book_coinbase(coinbase_client, product_id, depth):
     :return: A DataFrame containing the order book.
     """
     # Fetch the order book
-    order_book = coinbase_client.get_product_order_book(product_id, level=depth)
+    order_book = coinbase_client.fetch_order_book(product_id, level=depth)
 
     # Convert the order book to DataFrame
     if depth in [1, 2]:

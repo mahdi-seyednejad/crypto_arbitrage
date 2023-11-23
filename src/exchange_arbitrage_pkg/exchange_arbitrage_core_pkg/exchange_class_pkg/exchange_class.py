@@ -1,5 +1,6 @@
 from src.exchange_arbitrage_pkg.broker_utils.quantity_calculation import calculate_quantity
 from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.trade_type_package.trade_class import Trade
+from src.exchange_arbitrage_pkg.exchange_class.base_exchange_class import ExchangeAbstractClass
 from src.exchange_arbitrage_pkg.trade_runner_package.trade_runner_helpers import execute_trade
 from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
 
@@ -7,8 +8,8 @@ from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
 class ExchangeMachine:
     def __init__(self,
                  name,
-                 src_exchange_platform,
-                 dst_exchange_platform,
+                 src_exchange_platform: ExchangeAbstractClass,
+                 dst_exchange_platform: ExchangeAbstractClass,
                  row,
                  col_info_obj: ColumnInfoClass,
                  budget):
@@ -23,7 +24,10 @@ class ExchangeMachine:
 
     def create_arbitrage_function(self):
         symbol = self.row[self.col_info_obj.symbol_col]
-        desired_quantity = calculate_quantity(self.row, self.col_info_obj, self.budget)
+        self.src_exchange_platform.set_budget(self.src_exchange_platform.sync_client, self.budget)
+        desired_quantity = calculate_quantity(self.row,
+                                              self.col_info_obj,
+                                              self.src_exchange_platform.get_budget_sync())
 
         async def ATrade(debug=False):
             print(f"Preparing arbitrage for {symbol} with desired quantity {desired_quantity}")

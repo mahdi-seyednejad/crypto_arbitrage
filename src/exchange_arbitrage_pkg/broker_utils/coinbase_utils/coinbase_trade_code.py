@@ -52,7 +52,7 @@ async def get_deposit_address_coinbase(client, currency):
     try:
         # Retrieve the deposit address for the specified currency
         crypto_account = next(acc for acc in client.get_accounts() if acc['currency'] == currency)
-        deposit_info = client.get_deposit_address(crypto_account['id'])
+        deposit_info = client.fetch_deposit_address(crypto_account['id'])
         return deposit_info
     except Exception as e:
         print(f"Error getting deposit address for {currency} on Coinbase Pro: {e}")

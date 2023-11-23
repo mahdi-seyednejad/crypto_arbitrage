@@ -4,7 +4,7 @@ from src.exchange_arbitrage_pkg.utils.calculation_utils import calculate_percent
 
 
 def get_usa_symbols(self):
-    info = self.client.get_exchange_info()
+    info = self.sync_client.get_exchange_info()
     pairs_data = info['symbols']
     full_data_dict = {s['symbol']: s for s in pairs_data if 'USDT' in s['symbol']}
     return full_data_dict

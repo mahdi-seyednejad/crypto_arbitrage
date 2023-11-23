@@ -84,7 +84,7 @@ async def sell_binance(client, symbol, quantity, price=None, debug=False):
 
 async def get_deposit_address_binance(client, symbol, debug=False):
     try:
-        address = client.get_deposit_address(asset=symbol)
+        address = client.fetch_deposit_address(asset=symbol)
         if debug:
             print(f"Deposit address for {symbol}: {address}")
 

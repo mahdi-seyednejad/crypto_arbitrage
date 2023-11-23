@@ -5,13 +5,12 @@ from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.exchange_class_pkg.e
 from src.exchange_arbitrage_pkg.exchange_class.base_exchange_class import ExchangeAbstractClass
 from src.exchange_arbitrage_pkg.symbol_arbitrage_eval_pkg.symbol_evaluator import SymbolEvaluatorArbitrage
 from src.exchange_arbitrage_pkg.trade_runner_package.trade_runner_base import TradeRunner
-from src.exchange_arbitrage_pkg.utils.binance_coinbase_convertor import extract_symbol
 from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
 from src.exchange_arbitrage_pkg.utils.exchange_picker import pick_exchange
 from src.exchange_arbitrage_pkg.utils.hyper_parameters.trade_hyper_parameter_class import TradeHyperParameter
 
 
-class ArbitrageExecutor:
+class ExchangeMachineMaker:
     def __init__(self,
                  exchange_list: List[ExchangeAbstractClass],
                  column_info_obj: ColumnInfoClass,
@@ -40,24 +39,26 @@ class ArbitrageExecutor:
                        inplace=True)
         return df.head(self.trade_hy_params_obj.trade_bucket_size).copy()
 
-    def _create_arbitrage_plan(self, df_in):
+    def _create_exchange_machines(self, df_in):
         df = df_in.copy()
 
         exchange_machines = []
         exchange_machine = None
         for index, row in df.iterrows():
             if row[self.col_info_obj.price_diff_col] > 0:  # Binance is more expensive => Binance is the seller
+                # We need to check/buy the coin on Coinbase, then, move it to Binance. Then, sell it on Binance.
                 exchange_machine = ExchangeMachine(name="Coinbase_to_Binance",
-                                                   src_exchange_platform=self._get_exchange(ExchangeNames.Binance),
-                                                   dst_exchange_platform=self._get_exchange(ExchangeNames.Coinbase),
+                                                   src_exchange_platform=self._get_exchange(ExchangeNames.Coinbase),
+                                                   dst_exchange_platform=self._get_exchange(ExchangeNames.Binance),
                                                    row=row,
                                                    col_info_obj=self.col_info_obj,
                                                    budget=self.trade_hy_params_obj.initial_budget)
 
             elif row[self.col_info_obj.price_diff_col] < 0:  # Coinbase is more expensive => Coinbase is the seller
+                # We need to check/buy the coin on Binance, then, move it to Coinbase. Then, sell it on Coinbase.
                 exchange_machine = ExchangeMachine(name="Binance_to_Coinbase",
-                                                   src_exchange_platform=self._get_exchange(ExchangeNames.Coinbase),
-                                                   dst_exchange_platform=self._get_exchange(ExchangeNames.Binance),
+                                                   src_exchange_platform=self._get_exchange(ExchangeNames.Binance),
+                                                   dst_exchange_platform=self._get_exchange(ExchangeNames.Coinbase),
                                                    row=row,
                                                    col_info_obj=self.col_info_obj,
                                                    budget=self.trade_hy_params_obj.initial_budget)
@@ -70,17 +71,18 @@ class ArbitrageExecutor:
 
         return exchange_machines
 
-    def run_per_bucket(self, df_in):
+    async def create_ex_machine_for_one_bucket(self, df_in):
         # We just work on the first bucket for now.
         df_bucket = self.get_bucket_organized_df(df_in)
         df_ranked = self.symbol_evaluator_obj.evaluate_then_rank_best_symbols(df_bucket, self.exchange_list)
         # df_ranked = self.symbol_evaluator_obj.rank_best_symbols(df_symbol_eval)
-        return self._create_arbitrage_plan(df_ranked)
+        return self._create_exchange_machines(df_ranked)
 
-    async def main_execute_from_df(self, df_in):  # The main function that gets the dataframe
-        exchange_machines = self.run_per_bucket(df_in)
+    async def main_execute_ex_machines(self, df_in):  # The main function that gets the dataframe
+        exchange_machines = await self.create_ex_machine_for_one_bucket(df_in)
         trade_runner = TradeRunner(exchange_machines, self.debug)
         await trade_runner.execute()
+        # Todo: Define how many exchange machine you are going to run per tr
 
 # If you use a crypto for hft, and it is still on the top of the diff_df,
 # then you can do it again.

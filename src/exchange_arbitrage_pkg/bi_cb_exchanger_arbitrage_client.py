@@ -1,16 +1,15 @@
+import asyncio
 import time
 from datetime import datetime
 from typing import List
-import asyncio
-import cbpro
+
 import pandas as pd
 
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import BinanceAPIKeys, CoinbaseProAPIKeys
-from src.exchange_arbitrage_pkg.broker_utils.binance_data_fetcher import get_last_24_hour_price, update_data_df, \
-    filter_invalid_symbols
+from src.exchange_arbitrage_pkg.broker_utils.binance_data_fetcher import update_data_df
 from src.exchange_arbitrage_pkg.broker_utils.coinbase_utils.coinbase_get_prices import get_latest_prices_coinbase_pro
+from src.exchange_arbitrage_pkg.exchange_class.advance_trade_exchange import AdvanceTradeExchange
 from src.exchange_arbitrage_pkg.exchange_class.binance_exchange import BinanceExchange
-from src.exchange_arbitrage_pkg.exchange_class.coinbase_exchange import CoinbaseExchange
 from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
 from src.exchange_arbitrage_pkg.utils.information_extractor import calculate_diff_and_sort, info_extractor_by_df
 
@@ -151,9 +150,7 @@ if __name__ == '__main__':
 
     col_obj = ColumnInfoClass()
     binance_exchange = BinanceExchange(BinanceAPIKeys())
-    # coinbase_exchange = cbpro.PublicClient()
-
-    coinbase_exchange = CoinbaseExchange(CoinbaseProAPIKeys())
+    coinbase_exchange = AdvanceTradeExchange(CoinbaseProAPIKeys())
 
     arb_bot = CryptoExArbitrageWithClient(binance_exchange_obj=binance_exchange,
                                           coinbase_exchange_obj=coinbase_exchange,
@@ -163,5 +160,4 @@ if __name__ == '__main__':
     asyncio.run(arb_bot.run(run_number=run_number,
                             apply_function=None, #print_for_testing
                             storage_dir=None))
-    # data = await arb_bot.get_order_book_and_volume("BTCUSDT", 100)
-    # print(data)
+
