@@ -1,5 +1,5 @@
 from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
-from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.exchange_class_pkg.exchange_class import ExchangeMachine
+from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.exchange_machine_pkg.exchange_machine import ExchangeMachine
 
 from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.trade_type_package.trade_eligibility import \
     check_symbols_for_trade, evaluate_symbols_for_trade

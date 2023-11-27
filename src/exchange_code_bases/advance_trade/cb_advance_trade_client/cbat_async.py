@@ -19,7 +19,30 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
                                           lambda: sync_function(*args, **kwargs))
 
     async def fetch_account_info(self):
-        return await self.async_wrap(super().fetch_account_info)
+        result = await self.async_wrap(super().fetch_account_info)
+        return result # await self.async_wrap(super().fetch_account_info())
+
+    # def get_budget(self, client: CryptoClient, currency):
+    #     if self.budget is None:
+    #         budget_result = client.fetch_budget(currency)
+    #         self.budget = float(budget_result['balance'])
+    #         return self.budget
+    #     else:
+    #         return self.budget
+    #
+    async def check_balance_coinbase(self, symbol):
+        df = await self.async_wrap(super().fetch_account_info)
+        try:
+            # Assuming 'currency.code' is the column name for currency codes after normalization
+            matching_account = df[df['currency.code'] == symbol.split("-")[0]]
+            if not matching_account.empty:
+                # Assuming 'balance.amount' is the column name for balance amounts
+                return matching_account['balance.amount'].iloc[0], True
+            else:
+                return 0, False
+        except Exception as e:
+            print(f"Error checking balance for {symbol} on Coinbase Pro: {e}")
+            return None, None
 
     def thread_clean_up(self):
         self.thread_executor.shutdown(wait=True)
@@ -45,16 +68,12 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
     async def fetch_order_book(self, product_id, level=2):
         return await self.async_wrap(super().fetch_order_book, product_id, level)
 
-
-
-# class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
-#     def __init__(self, api_auth_obj: APIAuthClass):
-#         super().__init__(api_auth_obj)
-#         self.session = aiohttp.ClientSession()
-#
-#     async def fetch_account_info(self):
-#         url = f'{self.base_url}/v2/accounts'
-#         async with self.session.get(url, auth=self.auth) as response:
-#             return await response.json()
-#
+    async def get_coinbase_symbol_details(client, symbol):
+        df = await client.fetch_account_info()
+        if df is not None:
+            buy_precision = df['base_increment']
+            min_buy_amount = df['base_min_size']
+            min_notional = df['min_market_funds']
+            return buy_precision, min_buy_amount, min_notional
+        return None, None, None
 

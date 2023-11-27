@@ -13,14 +13,17 @@ class CoinbaseAuth(AuthBase):
 
     def __call__(self, request):
         timestamp = str(int(time.time()))
-        message = timestamp + request.method + request.path_url + (request.body or '')
+        message = timestamp + request.method + request.path_url
+        if request.body:
+            message += request.body.decode('utf-8')  # Decode the body to string
+
+        # message = timestamp + request.method + request.path_url + (request.body or '')
         signature = hmac.new(self.secret_key.encode(), message.encode(), hashlib.sha256).hexdigest()
 
         request.headers.update({
             'CB-ACCESS-KEY': self.api_key,
             'CB-ACCESS-SIGN': signature,
             'CB-ACCESS-TIMESTAMP': timestamp,
-            'CB-ACCESS-PASSPHRASE': 'your_passphrase'  # Only needed for Coinbase Pro, not for Coinbase
         })
         return request
 

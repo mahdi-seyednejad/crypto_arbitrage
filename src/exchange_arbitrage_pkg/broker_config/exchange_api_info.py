@@ -18,6 +18,14 @@ class CoinbaseAPIKeys(APIAuthClass):
         self.is_testnet = False
 
 
+class CoinbaseAPIKeysSandBox(APIAuthClass):
+    def __init__(self):
+        super().__init__()
+        self.api_key = str(os.environ.get("coinbase_api"))
+        self.secret_key = str(os.environ.get("coinbase_secret"))
+        self.is_testnet = True
+
+
 class CoinbaseProAPIKeys(APIAuthClass):
     def __init__(self):
         super().__init__()

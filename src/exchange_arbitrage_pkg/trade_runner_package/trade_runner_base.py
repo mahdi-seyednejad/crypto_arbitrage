@@ -1,7 +1,7 @@
 import asyncio
 from typing import List
 
-from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.exchange_class_pkg.exchange_class import ExchangeMachine
+from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.exchange_machine_pkg.exchange_machine import ExchangeMachine
 
 
 class TradeRunner:
@@ -16,7 +16,7 @@ class TradeRunner:
         for ex_machine in self.exchange_machines:
             arbitrage_trade = ex_machine.create_arbitrage_function()
             # Example usage, you would replace 'symbol' and 'quantity' with actual values
-            tasks.append(asyncio.create_task(arbitrage_trade(self.debug)))
+            tasks.append(asyncio.create_task(arbitrage_trade()))
         # Run tasks concurrently
         await asyncio.gather(*tasks)
 

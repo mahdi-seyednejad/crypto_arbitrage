@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
 from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
+from src.exchange_arbitrage_pkg.budget_manager.budget_manager_class import BudgetManager
 from src.exchange_code_bases.abstract_classes.crypto_clients import CryptoClient
 
 
@@ -14,6 +15,7 @@ class ExchangeAbstractClass(ABC):
         self.sync_client = None
         self.async_obj = None
         self.budget = None
+        self.budget_manager = BudgetManager(self.budget)
 
     def get_budget_sync(self, currency: str = 'USDT'):
         return self.get_budget(self.sync_client, currency)
@@ -30,7 +32,8 @@ class ExchangeAbstractClass(ABC):
         if defined_budget is not None:
             self.budget = defined_budget
         else:
-            self.budget = float(client.fetch_budget(currency)['balance'])
+            extracted_budget = client.fetch_budget(currency)
+            self.budget = float(extracted_budget['balance'])
 
     # Becareful about the concurrency in the budget.
 
@@ -40,6 +43,10 @@ class ExchangeAbstractClass(ABC):
 
     @abstractmethod
     def get_order_book_sync(self, client, symbol, depth=100):
+        pass
+
+    @abstractmethod
+    def get_order_output_quantity(self, order):
         pass
 
 

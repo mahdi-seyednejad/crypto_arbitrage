@@ -36,3 +36,21 @@ class BinanceExchange(ExchangeAbstractClass):
 
         return combined_df
 
+    def get_order_output_quantity(self, order):
+        """
+        Processes the Binance order response (either buy or sell) and returns the executed quantity.
+        If the order was not successful or an error occurred, returns -1.
+        """
+        try:
+            # Assuming 'order' is a dictionary containing the response from Binance
+            if order and 'executedQty' in order:
+                executed_quantity = float(order['executedQty'])
+                return executed_quantity
+            else:
+                # Order response doesn't have the expected field
+                return -1
+        except Exception as e:
+            print(f"Error processing order response: {e}")
+            return -1
+
+

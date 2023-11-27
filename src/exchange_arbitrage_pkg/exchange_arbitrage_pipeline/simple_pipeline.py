@@ -39,7 +39,7 @@ class SimplePipeline:
                                     experiment_sample_size=self.sample_size,
                                     debug=self.debug)
 
-    async def run_executor(self, exchange_arbitrage_obj, arbitrage_function):
+    async def run_executor(self, exchange_arbitrage_obj: CryptoExArbitrageWithClient, arbitrage_function):
         await exchange_arbitrage_obj.run(
             run_number=self.trade_hyper_parameters.run_number,
             apply_function=arbitrage_function,
@@ -50,7 +50,7 @@ class SimplePipeline:
         exchange_arbit_obj = self.get_exchange_arbit_obj(exchange_arbit_class=CryptoExArbitrageWithClient)
 
         executor_object = ExchangeMachineMaker(exchange_list=self.exchange_list,
-                                               column_info_obj=self.column_info_obj,
+                                               col_info_obj=self.column_info_obj,
                                                symbol_evaluator_obj=self.symbol_evaluator_obj,
                                                trade_hy_params_obj=self.trade_hyper_parameters,
                                                debug=self.debug)
@@ -68,8 +68,9 @@ if __name__ == '__main__':
                                         price_range_percent=0.5,
                                         initial_budget=None,
                                         outlier_threshold=2.1,
-                                        fetch_period=2,
-                                        run_number=10)
+                                        fetch_period=30,
+                                        run_number=10,
+                                        budget_factor=0.5)
     col_obj = ColumnInfoClass()
 
     pipeline = SimplePipeline(trade_hyper_parameters=tr_hype_param,

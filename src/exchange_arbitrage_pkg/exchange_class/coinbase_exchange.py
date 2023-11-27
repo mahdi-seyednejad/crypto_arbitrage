@@ -97,9 +97,11 @@ class CoinbaseExchange(ExchangeAbstractClass):
                                    b64secret=self.api_auth_obj.secret_key,
                                    passphrase=self.api_auth_obj.pass_phrase)
 
-    def get_order_book_sync(self, symbol, level=2):
+    def get_order_book_sync(self, client, symbol, level=2):
         symbol = convert__symbol_bi_to_cb(symbol)
-        order_book = self.client.get_product_order_book(product_id=symbol, level=level)
+        if client is None:
+            client = self.client
+        order_book = client.get_product_order_book(product_id=symbol, level=level)
 
         # Adding 'side' column and combining bids and asks
         bids_df = pd.DataFrame(order_book['bids'], columns=['price', 'volume', 'num_orders'])

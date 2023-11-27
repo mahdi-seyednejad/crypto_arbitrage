@@ -113,6 +113,7 @@ class CryptoExArbitrageWithClient:
         return self.data
 
     async def run(self, run_number=10, apply_function=None, storage_dir=None):
+        #ToDo: Looping back starts in here.
         sleep_time = 2
         counter = 0
         # Run the arbitrage detection for a specified number of times

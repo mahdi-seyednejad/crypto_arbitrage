@@ -20,7 +20,7 @@ def calculate_quantity(row, col_info_obj: ColumnInfoClass, budget):
     max_price = max([row[col] for col in price_cols])
 
     budget_qty = budget / max_price
-    quantity = max(row[max_trade_qty_col], budget_qty)
+    quantity = min(row[max_trade_qty_col], budget_qty)
     return quantity
 
 

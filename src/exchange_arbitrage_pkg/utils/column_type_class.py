@@ -16,6 +16,8 @@ class ColumnSymbolEvalClass:
                  max_trade_qty_col='max_trade_quantity',
                  quant_multiply_percent_col='quant_multiply_percent',
                  optional_prefix: str = '',
+                 budge_factor_col='budget_factor',
+                 budget_col='budget',
                  ):
         self.max_sell_qty_col = f"{optional_prefix}_{max_sell_qty_col}"
         self.bid_ask_spread_col = f"{optional_prefix}_{bid_ask_spread_col}"
@@ -28,6 +30,8 @@ class ColumnSymbolEvalClass:
         self.quant_multiply_percent_col = f"{optional_prefix}_{quant_multiply_percent_col}"
         self.min_price_col = f"{optional_prefix}_min_price"  # min(binance_price_col, coinbase_price_col)
         self.max_gain_col = f"{optional_prefix}_max_gain"  # diff percent * max_trade_qty_col * current_price_diff_percentage_col
+        self.budge_factor_col = f"{optional_prefix}_{budge_factor_col}"
+        self.budget_col = f"{optional_prefix}_{budget_col}"
 
 
 class ColumnInfoClass:
@@ -66,17 +70,3 @@ class ColumnInfoClass:
         else:
             self.exchange_price_cols = exchange_price_cols
 
-# class OutputColumnClass:
-#     def __init__(self, output_columns, bi_price_change_24h):
-#         self.output_columns = output_columns
-#         self.bi_price_change_24h = bi_price_change_24h
-#
-#
-# class ColumnTypeClass:
-#     def __init__(self,
-#                  initial_columns: InitialColumnClass,
-#                  output_columns:OutputColumnClass,
-#                  **kwargs):
-#         self.initial_columns = initial_columns
-#         self.output_columns = output_columns
-#         self.kwargs = kwargs

@@ -1,16 +1,24 @@
 from binance.client import Client
 import asyncio
+import traceback
+
+from src.exchange_arbitrage_pkg.broker_utils.binance_utils.binance_symbol_utils import get_base_currency_binance
+from src.exchange_arbitrage_pkg.utils.symbol_pair_pkg.binance_symbol_funcs.information_fetch import \
+    get_adjusted_trade_amount
 
 
 async def check_balance(client, symbol):
-    balance = None
     try:
-        balance = client.get_asset_balance(asset=symbol)
-        # return balance
+        balance = await client.get_asset_balance(asset=symbol)
+        if balance is None:
+            print(f"Balance for {symbol} is None")
+            return 0
+        else:
+            return float(balance['free'])
     except Exception as e:
-        print(f"Error checking balance for {symbol} on Binance: {e}")
-
-    return balance
+        print(f"Error checking balance for {symbol}: {e}")
+        traceback.print_exc()  # This prints the full traceback
+        return None
 
 
 async def place_limit_order(client, symbol, side, quantity, price):
@@ -26,40 +34,31 @@ async def place_limit_order(client, symbol, side, quantity, price):
     return order
 
 
-async def withdraw(client, asset, quantity, address, debug=False):
+async def withdraw(client, symbol, quantity, address, debug=False):
     # Note: Ensure the withdrawal address is whitelisted in your Binance account
+    base_currency = get_base_currency_binance(symbol)
     try:
         withdrawal = client.withdraw(
-            asset=asset,
+            asset=base_currency,
             amount=quantity,
             address=address
         )
         if debug:
-            print(f"Withdrawal of {asset}: {withdrawal}")
+            print(f"Withdrawal of {base_currency}: {withdrawal}")
         return withdrawal
     except Exception as e:
-        print(f"Error withdrawing {asset} from Binance: {e}")
+        print(f"Error withdrawing {base_currency} from Binance: {e}")
 
-
-# async def execute_binance_trade(client, trade):
-#     if trade.trade_type == 'check':
-#         await check_balance(client, trade.symbol)
-#     elif trade.trade_type == 'limit_order':
-#         await place_limit_order(client, trade.symbol, trade.side, trade.quantity, trade.price)
-#     elif trade.trade_type == 'withdraw':
-#         # You need to provide the withdrawal address
-#         await withdraw(client, trade.symbol, trade.quantity, 'your_withdrawal_address')
-#     # ... add other trade types as needed
-#     await asyncio.sleep(1)  # Simulate async operation
 
 async def buy_binance(client, symbol, quantity, price=None, debug=False):
+    adjusted_quantity = get_adjusted_trade_amount(client, symbol, quantity)
     try:
         if price is None:
             # Market order
-            order = client.order_market_buy(symbol=symbol, quantity=quantity)
+            order = await client.order_market_buy(symbol=symbol, quantity=adjusted_quantity)
         else:
             # Limit order
-            order = client.order_limit_buy(symbol=symbol, quantity=quantity, price=str(price))
+            order = await client.order_limit_buy(symbol=symbol, quantity=adjusted_quantity, price=str(price))
         if debug:
             print(f"Buy order status for {symbol}: {order}")
         return order
@@ -68,13 +67,14 @@ async def buy_binance(client, symbol, quantity, price=None, debug=False):
 
 
 async def sell_binance(client, symbol, quantity, price=None, debug=False):
+    adjusted_quantity = get_adjusted_trade_amount(client, symbol, quantity)
     try:
         if price is None:
             # Market order
-            order = client.order_market_sell(symbol=symbol, quantity=quantity)
+            order = client.order_market_sell(symbol=symbol, quantity=adjusted_quantity)
         else:
             # Limit order
-            order = client.order_limit_sell(symbol=symbol, quantity=quantity, price=str(price))
+            order = client.order_limit_sell(symbol=symbol, quantity=adjusted_quantity, price=str(price))
         if debug:
             print(f"Sell order status for {symbol}: {order}")
         return order
@@ -83,15 +83,13 @@ async def sell_binance(client, symbol, quantity, price=None, debug=False):
 
 
 async def get_deposit_address_binance(client, symbol, debug=False):
+    base_currency = get_base_currency_binance(symbol)
     try:
-        address = client.fetch_deposit_address(asset=symbol)
+        address = client.fetch_deposit_address(asset=base_currency)
         if debug:
-            print(f"Deposit address for {symbol}: {address}")
+            print(f"Deposit address for {base_currency}: {address}")
 
         return address
     except Exception as e:
-        print(f"Error getting deposit address for {symbol} on Binance: {e}")
-
-
-
+        print(f"Error getting deposit address for {base_currency} on Binance: {e}")
 
