@@ -22,14 +22,6 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
         result = await self.async_wrap(super().fetch_account_info)
         return result # await self.async_wrap(super().fetch_account_info())
 
-    # def get_budget(self, client: CryptoClient, currency):
-    #     if self.budget is None:
-    #         budget_result = client.fetch_budget(currency)
-    #         self.budget = float(budget_result['balance'])
-    #         return self.budget
-    #     else:
-    #         return self.budget
-    #
     async def check_balance_coinbase(self, symbol):
         df = await self.async_wrap(super().fetch_account_info)
         try:
@@ -67,13 +59,4 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
 
     async def fetch_order_book(self, product_id, level=2):
         return await self.async_wrap(super().fetch_order_book, product_id, level)
-
-    async def get_coinbase_symbol_details(client, symbol):
-        df = await client.fetch_account_info()
-        if df is not None:
-            buy_precision = df['base_increment']
-            min_buy_amount = df['base_min_size']
-            min_notional = df['min_market_funds']
-            return buy_precision, min_buy_amount, min_notional
-        return None, None, None
 

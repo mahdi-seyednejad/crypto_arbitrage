@@ -16,6 +16,8 @@ class ExchangeAbstractClass(ABC):
         self.async_obj = None
         self.budget = None
         self.budget_manager = BudgetManager(self.budget)
+        self.withdrawal_factor = 0.95 # The mount of money that will be withdrawn from the exchange after deducting the gas fee
+        self.price_col = None # ToDO: Move the price column name here
 
     def get_budget_sync(self, currency: str = 'USDT'):
         return self.get_budget(self.sync_client, currency)
@@ -46,7 +48,7 @@ class ExchangeAbstractClass(ABC):
         pass
 
     @abstractmethod
-    def get_order_output_quantity(self, order):
+    def get_order_output_quantity(self, order, current_price):
         pass
 
 

@@ -14,8 +14,9 @@ class BinanceExchange(ExchangeAbstractClass):
     def __init__(self, api_auth_obj: APIAuthClass):
         super().__init__(ExchangeNames.Binance, api_auth_obj)
         self.sync_client = BinanceSyncClient(api_auth_obj=self.api_auth_obj)
-        self.vol_col_key = "binance_volume_col"
+        self.vol_col = "binance_volume_col"
         self.budget = None
+        self.price_col = 'binance_price'
 
     def create_async_client(self):
         self.async_obj = BinanceAsyncClient(api_auth_obj=self.api_auth_obj)
@@ -36,7 +37,7 @@ class BinanceExchange(ExchangeAbstractClass):
 
         return combined_df
 
-    def get_order_output_quantity(self, order):
+    def get_order_output_quantity(self, order, current_price):
         """
         Processes the Binance order response (either buy or sell) and returns the executed quantity.
         If the order was not successful or an error occurred, returns -1.
@@ -53,4 +54,6 @@ class BinanceExchange(ExchangeAbstractClass):
             print(f"Error processing order response: {e}")
             return -1
 
+    def get_current_price(self, symbol):
+        return self.sync_client.client.get_symbol_ticker(symbol=symbol)
 

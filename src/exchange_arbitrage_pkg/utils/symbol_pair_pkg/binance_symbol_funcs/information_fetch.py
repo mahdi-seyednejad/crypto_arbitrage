@@ -1,8 +1,8 @@
 from binance.client import Client
 
 
-def get_trade_details(client, symbol):
-    info = client.get_symbol_info(symbol)
+async def get_trade_details(client, symbol):
+    info = await client.get_symbol_info(symbol)
     if info:
         buy_precision = info['baseAssetPrecision']
         min_buy_amount = info['filters'][2]['minQty']
@@ -20,10 +20,10 @@ def adjust_buy_amount(amount, price, buy_precision, min_buy_amount, min_notional
     return adjusted_amount
 
 
-def get_adjusted_trade_amount(client, symbol, amount):
-    ticker = client.get_symbol_ticker(symbol="BTCUSDT")
+async def get_adjusted_trade_amount(client, symbol, amount):
+    ticker = await client.get_symbol_ticker(symbol="BTCUSDT")
     price = float(ticker['price'])
-    buy_precision, min_buy_amount, min_notional = get_trade_details(client, symbol)
+    buy_precision, min_buy_amount, min_notional = await get_trade_details(client, symbol)
 
     if buy_precision is None:
         raise ValueError(f"Could not fetch trade details for {symbol}")

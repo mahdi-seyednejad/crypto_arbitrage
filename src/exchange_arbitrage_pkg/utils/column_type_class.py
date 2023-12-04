@@ -1,7 +1,7 @@
 from typing import Dict
 
-bi_cb_exchange_price_cols = {"binance_price_col": "binance_price",
-                             "coinbase_price_col": "coinbase_price"}
+# bi_cb_exchange_price_cols = {"binance_price_col": "binance_price",
+#                              "coinbase_price_col": "coinbase_price"}
 
 
 class ColumnSymbolEvalClass:
@@ -38,7 +38,7 @@ class ColumnInfoClass:
     def __init__(self,
                  symbol_col="symbol",
                  volume_col="volume",
-                 exchange_price_cols: Dict[str, str] = None, # These things should be kept in the exchange. Not here
+                 # exchange_price_cols: Dict[str, str] = None, # These things should be kept in the exchange. Not here
                  exchange_volume_cols: Dict[str, str] = None,
                  price_diff_col="price_diff_bi_cb",
                  current_price_diff_percentage_col="current_price_diff_percentage",
@@ -64,9 +64,12 @@ class ColumnInfoClass:
             self.exchange_volume_cols = {"binance_volume_col": "binance_volume_24h"}
         else:
             self.exchange_volume_cols = exchange_volume_cols
+        #
+        # if exchange_price_cols is None:
+        #     self.exchange_price_cols = bi_cb_exchange_price_cols
+        # else:
+        #     self.exchange_price_cols = exchange_price_cols
 
-        if exchange_price_cols is None:
-            self.exchange_price_cols = bi_cb_exchange_price_cols
-        else:
-            self.exchange_price_cols = exchange_price_cols
+    def get_max_trade_qty_col(self):
+        return self.symbol_eval_col_obj.max_trade_qty_col
 

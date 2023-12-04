@@ -19,6 +19,7 @@ class SymbolEvaluatorArbitrage:
     def __init__(self,
                  column_info_obj: ColumnInfoClass,
                  trade_hyper_parameters: TradeHyperParameter,
+                 price_cols: List[str],
                  debug: bool):
         self.col_info = column_info_obj
         self.hype_params = trade_hyper_parameters
@@ -34,7 +35,8 @@ class SymbolEvaluatorArbitrage:
         self.max_gain_col = column_info_obj.symbol_eval_col_obj.max_gain_col
         self.min_price_col = column_info_obj.symbol_eval_col_obj.min_price_col
         self.market_impact_col = column_info_obj.symbol_eval_col_obj.market_impact_col
-        self.price_cols = [val for key, val in self.col_info.exchange_price_cols.items()]
+        # self.price_cols = [val for key, val in self.col_info.exchange_price_cols.items()]
+        self.price_cols = price_cols
         self.order_book_df_dict = {}
         self.debug = debug
 

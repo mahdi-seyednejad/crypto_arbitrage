@@ -14,7 +14,7 @@ from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
 from src.exchange_arbitrage_pkg.utils.information_extractor import calculate_diff_and_sort, info_extractor_by_df
 
 
-class CryptoExArbitrageWithClient:
+class PriceDiffExtractor:
     def __init__(self,
                  binance_exchange_obj,
                  coinbase_exchange_obj,  # It can be either sync client, or a public one
@@ -22,15 +22,13 @@ class CryptoExArbitrageWithClient:
                  experiment_sample_size=None,
                  debug=True):
         self.binance_exchange = binance_exchange_obj
+        self.coinbase_exchange = coinbase_exchange_obj
         self.binance_client_async = None
         self.coinbase_client_sync = coinbase_exchange_obj.public_client
         self.data = None
         self.debug = debug
         self.sample_size = experiment_sample_size
         self.column_obj = column_obj
-        self.binance_price_col = "binance_price"
-        self.coinbase_price_col = "coinbase_price" # Use exchange_price_col in the future
-
         self.data_collection: List[pd.DataFrame()] = []
         self.data: pd.DataFrame() = None
         self.accumulated_data: pd.DataFrame() = None  # Todo: Concatenate new dataframes
@@ -67,17 +65,14 @@ class CryptoExArbitrageWithClient:
         combined_df = info_extractor_by_df(binance_prices, coinbase_prices)
         combined_df['current_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         # Convert 'binance_price' and 'coinbase_price' to numeric values
-        combined_df['binance_price'] = pd.to_numeric(combined_df['binance_price'], errors='coerce')
-        combined_df['coinbase_price'] = pd.to_numeric(combined_df['coinbase_price'], errors='coerce')
+        combined_df[self.binance_exchange.price_col] = pd.to_numeric(combined_df[self.binance_exchange.price_col], errors='coerce')
+        combined_df[self.coinbase_exchange.price_col] = pd.to_numeric(combined_df[self.coinbase_exchange.price_col], errors='coerce')
         return combined_df
-
-    # async def add_last_24_h_price_change_info(self, combined_df):
-    #     last_24_h_price_df = await get_last_24_hour_price(self.binance_client_async)
-    #     return pd.merge(combined_df, last_24_h_price_df, on="symbol", how="inner")
 
     def update_and_sort_data(self, new_df):
         new_data_df = update_data_df(original_df_in=self.data, new_df=new_df)
-        new_data_df.sort_values(by=['current_price_diff_percentage', 'recency', 'price_diff_bi_cb'],
+        new_data_df.sort_values(by=[self.column_obj.current_price_diff_percentage_col,
+                                    'recency', self.column_obj.price_diff_col],
                                 ascending=[False, False, False], inplace=True)
         return new_data_df
 
@@ -86,9 +81,12 @@ class CryptoExArbitrageWithClient:
         extracted_info = await self.get_data_from_exchanges()
 
         # Step 2- Calculate the difference, diff percentage, and sort the data
-        combined_df = calculate_diff_and_sort(extracted_info)
+        combined_df = calculate_diff_and_sort(extracted_info_in=extracted_info,
+                                              first_ex_price_col=self.binance_exchange.price_col,
+                                              second_ex_price_col=self.coinbase_exchange.price_col,
+                                              col_info_obj=self.column_obj)
 
-        # step 3- Add the recncy column
+        # step 3- Add the recency column
         combined_df['recency'] = 0
 
         # Step 4- Add the last 24 hours price change info
@@ -124,7 +122,7 @@ class CryptoExArbitrageWithClient:
                     await apply_function(result_df)
                 if storage_dir is not None:
                     result_df.to_csv(f"{storage_dir}/data_{counter}.csv")
-                    # result_df.to_csv(f"results/data_{counter}.csv")
+                    result_df.to_csv(f"results/data_{counter}.csv")
                 time.sleep(sleep_time)
         else:
             for i in range(run_number):
@@ -147,17 +145,17 @@ def print_for_testing(df):
 if __name__ == '__main__':
     DEBUG = True
     sample_size = None # Just for testing
-    run_number = 10
+    run_number = 20
 
     col_obj = ColumnInfoClass()
     binance_exchange = BinanceExchange(BinanceAPIKeys())
     coinbase_exchange = AdvanceTradeExchange(CoinbaseProAPIKeys())
 
-    arb_bot = CryptoExArbitrageWithClient(binance_exchange_obj=binance_exchange,
-                                          coinbase_exchange_obj=coinbase_exchange,
-                                          experiment_sample_size=sample_size,
-                                          column_obj=col_obj,
-                                          debug=DEBUG)
+    arb_bot = PriceDiffExtractor(binance_exchange_obj=binance_exchange,
+                                 coinbase_exchange_obj=coinbase_exchange,
+                                 experiment_sample_size=sample_size,
+                                 column_obj=col_obj,
+                                 debug=DEBUG)
     asyncio.run(arb_bot.run(run_number=run_number,
                             apply_function=None, #print_for_testing
                             storage_dir=None))

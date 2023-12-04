@@ -43,6 +43,14 @@ class BinanceAPIKeys(APIAuthClass):
         self.is_testnet = False
 
 
+class BinanceAPIKeysHFT01(APIAuthClass):
+    def __init__(self):
+        super().__init__()
+        self.api_key = str(os.environ.get("binance_hft_api_key"))
+        self.secret_key = str(os.environ.get("binance_hft_secret"))
+        self.is_testnet = False
+
+
 class BinanceAPIKeysReadOnly(APIAuthClass):
     def __init__(self):
         super().__init__()

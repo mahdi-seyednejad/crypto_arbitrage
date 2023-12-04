@@ -11,7 +11,7 @@ async def check_balance(client, symbol):
     try:
         balance = await client.get_asset_balance(asset=symbol)
         if balance is None:
-            print(f"Balance for {symbol} is None")
+            print(f"Balance for {symbol} on Binance is None")
             return 0
         else:
             return float(balance['free'])
@@ -34,14 +34,16 @@ async def place_limit_order(client, symbol, side, quantity, price):
     return order
 
 
-async def withdraw(client, symbol, quantity, address, debug=False):
+async def withdraw(client, symbol, quantity, address, network, debug=False):
     # Note: Ensure the withdrawal address is whitelisted in your Binance account
     base_currency = get_base_currency_binance(symbol)
     try:
-        withdrawal = client.withdraw(
-            asset=base_currency,
+        withdrawal = await client.withdraw(
+            coin=base_currency,
             amount=quantity,
-            address=address
+            address=address,
+            network=network  # Add the network parameter
+
         )
         if debug:
             print(f"Withdrawal of {base_currency}: {withdrawal}")
@@ -51,14 +53,15 @@ async def withdraw(client, symbol, quantity, address, debug=False):
 
 
 async def buy_binance(client, symbol, quantity, price=None, debug=False):
-    adjusted_quantity = get_adjusted_trade_amount(client, symbol, quantity)
+    adjusted_quantity = await get_adjusted_trade_amount(client, symbol, quantity)
+    formatted_amount = "{:.8f}".format(adjusted_quantity)
     try:
         if price is None:
             # Market order
-            order = await client.order_market_buy(symbol=symbol, quantity=adjusted_quantity)
+            order = await client.order_market_buy(symbol=symbol, quantity=formatted_amount)
         else:
             # Limit order
-            order = await client.order_limit_buy(symbol=symbol, quantity=adjusted_quantity, price=str(price))
+            order = await client.order_limit_buy(symbol=symbol, quantity=formatted_amount, price=str(price))
         if debug:
             print(f"Buy order status for {symbol}: {order}")
         return order
@@ -67,14 +70,15 @@ async def buy_binance(client, symbol, quantity, price=None, debug=False):
 
 
 async def sell_binance(client, symbol, quantity, price=None, debug=False):
-    adjusted_quantity = get_adjusted_trade_amount(client, symbol, quantity)
+    adjusted_quantity = await get_adjusted_trade_amount(client, symbol, quantity)
+    formatted_amount = "{:.8f}".format(adjusted_quantity)
     try:
         if price is None:
             # Market order
-            order = client.order_market_sell(symbol=symbol, quantity=adjusted_quantity)
+            order = await client.order_market_sell(symbol=symbol, quantity=formatted_amount)
         else:
             # Limit order
-            order = client.order_limit_sell(symbol=symbol, quantity=adjusted_quantity, price=str(price))
+            order = await client.order_limit_sell(symbol=symbol, quantity=formatted_amount, price=str(price))
         if debug:
             print(f"Sell order status for {symbol}: {order}")
         return order
@@ -85,11 +89,11 @@ async def sell_binance(client, symbol, quantity, price=None, debug=False):
 async def get_deposit_address_binance(client, symbol, debug=False):
     base_currency = get_base_currency_binance(symbol)
     try:
-        address = client.fetch_deposit_address(asset=base_currency)
+        deposit_address = await client.get_deposit_address(coin=base_currency)
+        # address = client.fetch_deposit_address(asset=base_currency)
         if debug:
-            print(f"Deposit address for {base_currency}: {address}")
+            print(f"Deposit address for {base_currency}: {'deposit_address'}")
 
-        return address
+        return deposit_address['address']
     except Exception as e:
         print(f"Error getting deposit address for {base_currency} on Binance: {e}")
-

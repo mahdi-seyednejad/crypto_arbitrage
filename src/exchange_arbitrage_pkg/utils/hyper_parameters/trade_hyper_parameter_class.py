@@ -15,6 +15,7 @@ class TradeHyperParameter:
                  run_number: Optional[int] = 10, # How many times to run the diff df generator loop/ None means forever
                  num_of_top_symbols=1, # Number of top evaluated symbols to be able to run their exchange machine
                  budget_factor=0.5, # How much of the budget to be used for each exchange machine
+                 acceptable_amount_diff_percent=0.5, # How much of the budget to be used for each exchange machine
                  ):
         self.trade_bucket_size = trade_bucket_size
         self.order_book_fetch_level = order_book_fetch_level
@@ -26,4 +27,5 @@ class TradeHyperParameter:
         self.run_number = run_number
         self.num_of_top_symbols = num_of_top_symbols
         self.budget_factor = budget_factor
+        self.acceptable_amount_diff_percent = acceptable_amount_diff_percent
 

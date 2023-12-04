@@ -60,10 +60,20 @@ class CbAdvanceTradeClient(CryptoClient):
         url = f'{self.base_url}/v2/accounts/{currency}/addresses'
         response = requests.post(url, auth=self.auth)
         if response.status_code in [200, 201]:
-            return response.json()['data']['deposit_uri']
+            response_data = response.json()['data']
+            return {'address': response_data['address'],
+                    'network': response_data['network']}
         else:
             # Handle error
-            return response.json()['data']['deposit_uri']
+            return response.json()['data']['address']
+
+    def fetch_all_deposit_addresses(self, currencies):
+        all_addresses = {}
+        for currency in currencies:
+            address_info = self.fetch_deposit_address(currency)
+            if address_info:
+                all_addresses[currency] = address_info
+        return all_addresses
 
     def fetch_budget(self, currency='USD'):
         url = f'{self.base_url}/v2/accounts'
@@ -87,91 +97,6 @@ class CbAdvanceTradeClient(CryptoClient):
             # Handle error
             return response.json()
 
-    # def create_order(self, currency, amount, side=None, order_type='market'):
-    #     formatted_amount = "{:.8f}".format(amount)
-    #     if 'USD' in currency:
-    #         product_id = currency
-    #     else:
-    #         product_id = f'{currency}-USD'
-    #     # product_details = getProduct(product_id) --> product_id
-    #     order_configuration = {'base_size': str(formatted_amount)}
-    #     order_type = 'market_market_ioc'
-    #
-    #     payload = {
-    #         "client_order_id": generate_unique_order_id(currency),
-    #         "product_id": product_id,
-    #         "side": side,
-    #         "order_configuration": {
-    #             order_type: order_configuration
-    #         }
-    #     }
-    #     headers = {
-    #         'Content-Type': 'application/json'
-    #     }
-    #
-    #     # url = f'{self.base_url}/orders'
-    #     url = "https://api.coinbase.com/api/v3/brokerage/orders"
-    #
-    #     response = requests.post(url,
-    #                              json=payload,
-    #                              auth=self.auth,
-    #                              headers=headers)
-    #
-    #     if response.status_code in [200, 201]:
-    #         try:
-    #             return response.json()
-    #         except Exception as e:
-    #             print(f"Error checking balance for {currency}: {e}")
-    #         except requests.exceptions.JSONDecodeError:
-    #             # Handle the case where JSON decoding fails
-    #             print(f"Failed to decode JSON. Status Code: {response.status_code}, Response: {response.text}")
-    #             return None
-    #     else:
-    #         # Handle error
-    #         return None
-
-    # def create_order(self, order_type, amount, currency, price=None):
-    #     client_order_id = generate_unique_order_id(currency)
-    #     formatted_amount = "{:.8f}".format(amount)
-    #     if 'USD' in currency:
-    #         product_id = currency
-    #     else:
-    #         product_id = f'{currency}-USD'
-    #
-    #     # Prepare the payload
-    #     payload = {
-    #                   "order_configuration": {
-    #                       "limit_limit_gtd": {
-    #                           "base_size": formatted_amount
-    #                       }
-    #                   },
-    #                   "side": order_type.upper() ,  # 'buy' or 'sell'
-    #                   "product_id": product_id,
-    #                   "client_order_id": client_order_id # Generate or define the client_order_id
-    #     }
-    #     if price:
-    #         payload['price'] = price
-    #         payload['type'] = 'limit'
-    #     else:
-    #         payload['type'] = 'market'
-    #
-    #     # Making the request
-    #     response = requests.post(f"{self.base_url}/api/v3/brokerage/orders", json=payload, auth=self.auth)
-    #
-    #     if response.status_code in [200, 201]:
-    #         try:
-    #             return response.json()
-    #         except json.JSONDecodeError:
-    #             print(f"Failed to decode JSON. Status Code: {response.status_code}, Response: {response.text}")
-    #             return None
-    #     else:
-    #         print(f"Error: {response.status_code}, {response.text}")
-    #         return None
-
-    # Example usage
-    # client = CoinbaseTradingClient("<API_KEY>", "<API_SECRET>", "<PASSPHRASE>")
-    # order_response = client.create
-
     def create_order(self, order_type, amount, currency, price=None):
         if 'USD' in currency:
             product_id = currency
@@ -179,13 +104,16 @@ class CbAdvanceTradeClient(CryptoClient):
             product_id = f'{currency}-USD'
         formatted_amount = "{:.8f}".format(amount)
 
+        # Determine the key for the amount based on the order type
+        amount_key = "quote_size" if order_type.upper() == "BUY" else "base_size"
+
         payload = {
-            "client_order_id": "1212",
+            "client_order_id": generate_unique_order_id(currency),
             "product_id": product_id,
             "side": order_type.upper(),
             "order_configuration": {
                 "market_market_ioc": {
-                    "base_size": str(formatted_amount)
+                    amount_key: str(formatted_amount)
                 }
             }
         }
@@ -197,7 +125,7 @@ class CbAdvanceTradeClient(CryptoClient):
             try:
                 return response.json(),
             except Exception as e:
-                print(f"Error checking balance for {currency}: {e}")
+                print(f"Error processing order for {currency}: {e}")
                 return response.json(), -1
             except requests.exceptions.JSONDecodeError:
                 # Handle the case where JSON decoding fails
@@ -228,3 +156,13 @@ class CbAdvanceTradeClient(CryptoClient):
         else:
             print("Failed to retrieve the order book for the given product ID: ", product_id)
             return None
+
+    # def get_coinbase_symbol_details(client, symbol):
+    #     df = client.fetch_account_info()
+    #     if df is not None:
+    #         buy_precision = df['base_increment']
+    #         min_buy_amount = df['base_min_size']
+    #         min_notional = df['min_market_funds']
+    #         return buy_precision, min_buy_amount, min_notional
+    #     return None, None, None
+    #

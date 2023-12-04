@@ -1,12 +1,12 @@
 import asyncio
 from typing import List
 
-from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.exchange_machine_pkg.exchange_machine import ExchangeMachine
+from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.exchange_machine_pkg.exchange_machine import ArbitrageMachine
 
 
 class TradeRunner:
     def __init__(self,
-                 exchange_machines: List[ExchangeMachine],
+                 exchange_machines: List[ArbitrageMachine],
                  debug: bool):
         self.exchange_machines = exchange_machines
         self.debug = debug
