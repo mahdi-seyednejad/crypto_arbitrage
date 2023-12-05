@@ -16,6 +16,7 @@ class TradeHyperParameter:
                  num_of_top_symbols=1, # Number of top evaluated symbols to be able to run their exchange machine
                  budget_factor=0.5, # How much of the budget to be used for each exchange machine
                  acceptable_amount_diff_percent=0.5, # How much of the budget to be used for each exchange machine
+                 min_acceptable_budget=10, # Minimum budget on an exchange to run a cross exchange machine
                  ):
         self.trade_bucket_size = trade_bucket_size
         self.order_book_fetch_level = order_book_fetch_level
@@ -28,4 +29,5 @@ class TradeHyperParameter:
         self.num_of_top_symbols = num_of_top_symbols
         self.budget_factor = budget_factor
         self.acceptable_amount_diff_percent = acceptable_amount_diff_percent
+        self.min_acceptable_budget = min_acceptable_budget
 

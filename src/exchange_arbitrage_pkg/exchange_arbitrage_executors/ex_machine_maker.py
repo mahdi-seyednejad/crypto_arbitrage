@@ -1,10 +1,11 @@
-from typing import List
+from typing import List, Tuple
 
 from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
 from src.exchange_arbitrage_pkg.budget_manager.budget_assigner.simple_budget_assigner import uniform_budget_assigner
 from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.exchange_machine_pkg.exchange_machine import \
     ArbitrageMachine
 from src.exchange_arbitrage_pkg.exchange_class.base_exchange_class import ExchangeAbstractClass
+from src.exchange_arbitrage_pkg.exchange_class.exchange_pair_class import ExchangePair
 from src.exchange_arbitrage_pkg.symbol_arbitrage_eval_pkg.symbol_evaluator import SymbolEvaluatorArbitrage
 from src.exchange_arbitrage_pkg.trade_runner_package.trade_runner_base import TradeRunner
 from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
@@ -14,22 +15,20 @@ from src.exchange_arbitrage_pkg.utils.hyper_parameters.trade_hyper_parameter_cla
 
 class ArbitrageMachineMaker:
     def __init__(self,
-                 exchange_list: List[ExchangeAbstractClass],
+                 exchange_pair: ExchangePair,
                  col_info_obj: ColumnInfoClass,
                  symbol_evaluator_obj: SymbolEvaluatorArbitrage,
                  trade_hy_params_obj: TradeHyperParameter,
                  debug: bool):
-        self.exchange_list = exchange_list
-        for exchange in self.exchange_list:
-            exchange.set_budget(exchange.sync_client, trade_hy_params_obj.initial_budget)
+        self.exchange_pair = exchange_pair
+        self.exchange_pair.set_all_budgets(trade_hy_params_obj.initial_budget)
         self.col_info_obj = col_info_obj
         self.symbol_evaluator_obj = symbol_evaluator_obj
         self.trade_hy_params_obj = trade_hy_params_obj
         self.debug = debug
         self.is_good_to_trade_col = col_info_obj.symbol_eval_col_obj.is_good_to_trade_col
-
-    def _get_exchange(self, exchange_name):
-        return pick_exchange(exchange_name, self.exchange_list)
+        self.best_sell_symbols_ex_1: List[Tuple[str, float]] = []
+        self.best_sell_symbols_ex_2: List[Tuple[str, float]] = []
 
     def get_bucket_organized_df(self, df_in):
         df = df_in.copy()
@@ -42,9 +41,34 @@ class ArbitrageMachineMaker:
                        inplace=True)
         return df.head(self.trade_hy_params_obj.trade_bucket_size).copy()
 
-    def get_assigned_allowed_budget(self, total_budget, row):
-        allowed_budget = self.trade_hy_params_obj.budget_factor * total_budget
+    def get_assigned_allowed_budget(self, src_exchange, row):
+        available_budget = src_exchange.get_budget_sync()
+        allowed_budget = self.trade_hy_params_obj.budget_factor * available_budget
         return allowed_budget * row[self.col_info_obj.symbol_eval_col_obj.budge_factor_col]
+
+    def get_arbit_machine_seller_FIRST(self, row):
+        # The seller (the first exchange) will be the destination exchange
+        src_exchange = self.exchange_pair.get_second_exchange()
+        return ArbitrageMachine(name=self.exchange_pair.name_first_seller,
+                                src_exchange_platform=src_exchange,
+                                dst_exchange_platform=self.exchange_pair.get_first_exchange(),
+                                row=row,
+                                col_info_obj=self.col_info_obj,
+                                ex_price_cols=self.exchange_pair.get_all_price_cols(),
+                                budget=self.get_assigned_allowed_budget(src_exchange, row),
+                                debug=self.debug)
+
+    def get_arbit_machine_seller_SECOND(self, row):
+        # The seller (the second exchange) will be the destination exchange
+        src_exchange = self.exchange_pair.get_first_exchange()
+        return ArbitrageMachine(name=self.exchange_pair.name_second_seller,
+                                src_exchange_platform=self.exchange_pair.get_first_exchange(),
+                                dst_exchange_platform=self.exchange_pair.get_second_exchange(),
+                                row=row,
+                                col_info_obj=self.col_info_obj,
+                                ex_price_cols=self.exchange_pair.get_all_price_cols(),
+                                budget=self.get_assigned_allowed_budget(src_exchange, row),
+                                debug=self.debug)
 
     def _create_arbitrage_machines(self, df_in):
         df = df_in.copy()
@@ -54,27 +78,11 @@ class ArbitrageMachineMaker:
         for index, row in df.iterrows():
             if row[self.col_info_obj.price_diff_col] > 0:  # Binance is more expensive => Binance is the seller
                 # We need to check/buy the coin on Coinbase, then, move it to Binance. Then, sell it on Binance.
-                src_exchange = self._get_exchange(ExchangeNames.Coinbase)
-                available_budget = src_exchange.get_budget_sync()
-                arbitrage_machine = ArbitrageMachine(name="Coinbase_to_Binance",
-                                                     src_exchange_platform=src_exchange,
-                                                     dst_exchange_platform=self._get_exchange(ExchangeNames.Binance),
-                                                     row=row,
-                                                     col_info_obj=self.col_info_obj,
-                                                     budget=self.get_assigned_allowed_budget(available_budget, row),
-                                                     debug=self.debug)
+                arbitrage_machine = self.get_arbit_machine_seller_FIRST(row)
 
             elif row[self.col_info_obj.price_diff_col] < 0:  # Coinbase is more expensive => Coinbase is the seller
                 # We need to check/buy the coin on Binance, then, move it to Coinbase. Then, sell it on Coinbase.
-                src_exchange = self._get_exchange(ExchangeNames.Binance)
-                available_budget = src_exchange.get_budget_sync()
-                arbitrage_machine = ArbitrageMachine(name="Binance_to_Coinbase",
-                                                     src_exchange_platform=src_exchange,
-                                                     dst_exchange_platform=self._get_exchange(ExchangeNames.Coinbase),
-                                                     row=row,
-                                                     col_info_obj=self.col_info_obj,
-                                                     budget=self.get_assigned_allowed_budget(available_budget, row),
-                                                     debug=self.debug)
+                arbitrage_machine = self.get_arbit_machine_seller_SECOND(row)
             if row[self.col_info_obj.price_diff_col] == 0 or arbitrage_machine is None:
                 # No opportunity
                 pass
@@ -105,18 +113,72 @@ class ArbitrageMachineMaker:
         negative_df = df[df[self.col_info_obj.price_diff_col] < 0]
         return positive_df, negative_df
 
-    async def create_and_run_arbit_machines(self, df_in):  # The main function that gets the dataframe
-        positive_df, negative_df = await self.break_df_to_positive_negative(df_in)
-        # Everytime that we call this, we need to coordinate with the budget manager.
+    def find_best_symbols(self, df_in):
+        # Divide the DataFrame into positive and negative groups
+        df_positive = df_in[df_in[self.col_info_obj.price_diff_col] > 0]
+        df_negative = df_in[df_in[self.col_info_obj.price_diff_col] < 0]
 
-        positive_arbitrage_machines = await self.create_arbitrage_machine_for_one_bucket(positive_df)
-        negative_arbitrage_machines = await self.create_arbitrage_machine_for_one_bucket(negative_df)
-        # selected_exchange_machines = exchange_machines[:runnable_ex_machine_num]
-        trade_runner_positive = TradeRunner(positive_arbitrage_machines, self.debug)
-        trade_runner_negative = TradeRunner(negative_arbitrage_machines, self.debug)
+        # Find the best symbol for each group
+        best_positive_values = (df_positive.iloc[0][self.col_info_obj.symbol_col],
+                                df_positive.iloc[0][self.exchange_pair.first_exchange.price_col]) \
+                            if not df_positive.empty else (None, None)
+
+        best_negative_values = (df_negative.iloc[0][self.col_info_obj.symbol_col],
+                                df_negative.iloc[0][self.exchange_pair.second_exchange.price_col]) \
+                            if not df_negative.empty else (None, None)
+
+        # Each of these 2 outputs is a tuple of (symbol, price)
+        return best_positive_values, best_negative_values
+
+    def update_best_sell_symbols_info_(self, df_in):
+        best_positive_values, best_negative_values = self.find_best_symbols(df_in)
+        self.best_sell_symbols_ex_1.append(best_positive_values)
+        self.best_sell_symbols_ex_2.append(best_negative_values)
+
+    async def create_and_run_arbit_machines(self, df_in):  # The main function that gets the dataframe
+        self.update_best_sell_symbols_info_(df_in)
+        arbitrage_machines = await self.create_arbitrage_machine_for_one_bucket(df_in)
+        trade_runner_positive = TradeRunner(arbitrage_machines, self.debug)
         await trade_runner_positive.execute()
-        await trade_runner_negative.execute()
         # Todo: Define how many exchange machine you are going to run per tr
+
+    # def _create_arbitrage_machines(self, df_in):
+    #     df = df_in.copy()
+    #
+    #     arbitrage_machines = []
+    #     arbitrage_machine = None
+    #     for index, row in df.iterrows():
+    #         if row[self.col_info_obj.price_diff_col] > 0:  # Binance is more expensive => Binance is the seller
+    #             # We need to check/buy the coin on Coinbase, then, move it to Binance. Then, sell it on Binance.
+    #             src_exchange = self._get_exchange(ExchangeNames.Coinbase)
+    #             available_budget = src_exchange.get_budget_sync()
+    #             arbitrage_machine = ArbitrageMachine(name="Coinbase_to_Binance",
+    #                                                  src_exchange_platform=src_exchange,
+    #                                                  dst_exchange_platform=self._get_exchange(ExchangeNames.Binance),
+    #                                                  row=row,
+    #                                                  col_info_obj=self.col_info_obj,
+    #                                                  budget=self.get_assigned_allowed_budget(available_budget, row),
+    #                                                  debug=self.debug)
+    #
+    #         elif row[self.col_info_obj.price_diff_col] < 0:  # Coinbase is more expensive => Coinbase is the seller
+    #             # We need to check/buy the coin on Binance, then, move it to Coinbase. Then, sell it on Coinbase.
+    #             src_exchange = self._get_exchange(ExchangeNames.Binance)
+    #             available_budget = src_exchange.get_budget_sync()
+    #             arbitrage_machine = ArbitrageMachine(name="Binance_to_Coinbase",
+    #                                                  src_exchange_platform=src_exchange,
+    #                                                  dst_exchange_platform=self._get_exchange(ExchangeNames.Coinbase),
+    #                                                  row=row,
+    #                                                  col_info_obj=self.col_info_obj,
+    #                                                  budget=self.get_assigned_allowed_budget(available_budget, row),
+    #                                                  debug=self.debug)
+    #         if row[self.col_info_obj.price_diff_col] == 0 or arbitrage_machine is None:
+    #             # No opportunity
+    #             pass
+    #         else:
+    #             # arbitrage_machine.create_trades(row, self.col_info_obj, self.trade_hy_params_obj.initial_budget)
+    #             arbitrage_machines.append(arbitrage_machine)
+    #
+    #     return arbitrage_machines
 
     # ToDO: What if all budget is in one platform: Move them using bitcoin to the other platform.
     # If a hhigher price crypto is already on the ghier price platform, then you can sell it, move the money to the cheaper platform. Then, buy, mive, sell.

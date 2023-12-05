@@ -1,45 +1,39 @@
 from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.exchange_machine_pkg.exchange_machine_double import \
     ArbitrageMachinePunches
 from src.exchange_arbitrage_pkg.exchange_arbitrage_executors.ex_machine_maker import ArbitrageMachineMaker
+from src.exchange_arbitrage_pkg.trade_runner_package.trade_runner_base import TradeRunner
 
 
 class ArbitrageMachineMakerPunch(ArbitrageMachineMaker):
 
-    def get_best_positive_symbol(self, df_pos):
-        # We need the best positive symbol from the first exchange.
-        first_exchange_price_col = self.exchange_list[0].price_col  # ToDo FIx this.
-        best = df_pos[df_pos[first_exchange_price_col] == df_pos[first_exchange_price_col].max()].iloc[0].values[0]
-        return best -> Get the symbol and their price
+    def get_arbit_machine_seller_FIRST(self, row):
+        # The seller (the first exchange) will be the destination exchange
+        src_exchange = self.exchange_pair.get_second_exchange()
+        (secondary_symbol, sec_symbol_price) = self.best_sell_symbols_ex_2[-1] # Who is the higher price/gain symbol on the second exchange?
+        return ArbitrageMachinePunches(name=self.exchange_pair.name_first_seller,
+                                       src_exchange_platform=src_exchange,
+                                       dst_exchange_platform=self.exchange_pair.get_first_exchange(),
+                                       row=row,
+                                       col_info_obj=self.col_info_obj,
+                                       ex_price_cols=self.exchange_pair.get_all_price_cols(),
+                                       budget=self.get_assigned_allowed_budget(src_exchange, row),
+                                       min_acceptable_budget=self.trade_hy_params_obj.min_acceptable_budget,
+                                       secondary_symbol=secondary_symbol,
+                                       secondary_symbol_price=sec_symbol_price,
+                                       debug=self.debug)
 
-    def get_best_negative_symbol(self, df_neg):
-        second_exchange_price_col = self.exchange_list[1].price_col
-        best = df_neg[df_neg[second_exchange_price_col] == df_neg[second_exchange_price_col].max()].iloc[0].values[0]
-        return best
-
-
-
-
-    def _create_arbitrage_machines_punch(self, df_pos, df_neg):
-        arbitrage_machines = []
-        arbitrage_machine = None
-        best_positive_symbol = self.get_best_positive_symbol(df_pos)
-        best_negative_symbol = self.get_best_negative_symbol(df_neg)
-
-        exchange_machines = []
-        for index, row in df.iterrows():
-            if row[self.col_info_obj.price_diff_col] > 0:
-                arbitrage_machine = ArbitrageMachinePunches(name="Coinbase_to_Binance",
-                                                            src_exchange_platform=src_exchange,
-                                                            dst_exchange_platform=self._get_exchange(
-                                                                ExchangeNames.Binance),
-                                                            row=row,
-                                                            col_info_obj=self.col_info_obj,
-                                                            budget=self.get_assigned_allowed_budget(available_budget,
-                                                                                                    row),
-                                                            secondary_symbol=self.secondary_symbol,
-                                                            secondary_symbol_price=self.secondary_symbol_price,
-                                                            debug=self.debug)
-            elif row[self.col_info_obj.price_diff_col] < 0:
-
-
-
+    def get_arbit_machine_seller_SECOND(self, row):
+        # The seller (the second exchange) will be the destination exchange
+        src_exchange = self.exchange_pair.get_first_exchange()
+        (secondary_symbol, sec_symbol_price) = self.best_sell_symbols_ex_1[-1] # Who is the higher price/gain symbol on the first exchange?
+        return ArbitrageMachinePunches(name=self.exchange_pair.name_second_seller,
+                                       src_exchange_platform=self.exchange_pair.get_first_exchange(),
+                                       dst_exchange_platform=self.exchange_pair.get_second_exchange(),
+                                       row=row,
+                                       col_info_obj=self.col_info_obj,
+                                       budget=self.get_assigned_allowed_budget(src_exchange, row),
+                                       min_acceptable_budget=self.trade_hy_params_obj.min_acceptable_budget,
+                                       ex_price_cols=self.exchange_pair.get_all_price_cols(),
+                                       secondary_symbol=secondary_symbol,
+                                       secondary_symbol_price=sec_symbol_price,
+                                       debug=self.debug)

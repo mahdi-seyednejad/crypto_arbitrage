@@ -12,6 +12,7 @@ def pick_exchange(exchange_name: ExchangeNames,
             return exchange
     return None  # Return None if no match is found
 
+
 def get_all_price_cols(exchange_list: List[ExchangeAbstractClass]) -> List[str]:
     price_cols = []
     for exchange in exchange_list:

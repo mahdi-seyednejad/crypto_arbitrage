@@ -3,7 +3,6 @@ from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.trade_type_package.t
 from src.exchange_arbitrage_pkg.exchange_class.base_exchange_class import ExchangeAbstractClass
 from src.exchange_arbitrage_pkg.trade_runner_package.trade_runner_helpers import execute_trade
 from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
-from src.exchange_arbitrage_pkg.utils.exchange_picker import get_all_price_cols
 
 
 class ArbitrageMachine:
@@ -13,6 +12,7 @@ class ArbitrageMachine:
                  dst_exchange_platform: ExchangeAbstractClass,
                  row,
                  col_info_obj: ColumnInfoClass,
+                 ex_price_cols,
                  budget,
                  debug):
         self.name = name
@@ -21,16 +21,17 @@ class ArbitrageMachine:
         self.row = row
         self.col_info_obj = col_info_obj
         self.budget = budget
+        self.min_acceptable_budget = min_acceptable_budget
         self.debug = debug
+        self.ex_price_cols = ex_price_cols
         self.trade_list = []
         self.symbol = self.row[self.col_info_obj.symbol_col]
-        self.price_cols = get_all_price_cols(exchange_list=[self.src_exchange_platform,
-                                                            self.dst_exchange_platform])
+        self.dst_price_col = self.dst_exchange_platform.price_col
 
     def get_desired_quantity(self):
         return calculate_quantity(row=self.row,
                                   max_trade_qty_col=self.col_info_obj.get_max_trade_qty_col(),
-                                  price_cols=self.price_cols,
+                                  price_cols=self.ex_price_cols,
                                   budget=self.budget)
 
     def create_arbitrage_function(self):

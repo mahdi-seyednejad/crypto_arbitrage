@@ -51,6 +51,3 @@ class ExchangeAbstractClass(ABC):
     def get_order_output_quantity(self, order, current_price):
         pass
 
-
-
-
