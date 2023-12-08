@@ -1,7 +1,7 @@
 import json
 
-from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseProAPIKeys, CoinbaseAPIKeys
-from src.exchange_arbitrage_pkg.exchange_class.advance_trade_exchange import AdvanceTradeExchange
+from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseAPIKeys
+from src.exchange_code_bases.exchange_class.advance_trade_exchange import AdvanceTradeExchange
 from src.exchange_code_bases.advance_trade.cb_advance_trade_client.cbat_client import CbAdvanceTradeClient
 from src.exchange_code_bases.advance_trade.client_authentication.coinbase_auth import CoinbaseAuth
 from src.exchange_code_bases.advance_trade.client_authentication.utility_funcs import create_asset_dataframe, \

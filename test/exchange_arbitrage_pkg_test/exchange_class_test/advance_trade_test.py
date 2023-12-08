@@ -1,7 +1,6 @@
-import pytest
 from decimal import Decimal
 
-from src.exchange_arbitrage_pkg.exchange_class.advance_trade_exchange_tools.order_parser import \
+from src.exchange_code_bases.exchange_class.advance_trade_exchange_tools.order_parser import \
     get_order_output_quantity
 
 def create_example_order_response(order_conf):

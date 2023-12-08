@@ -1,11 +1,11 @@
-from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
-from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.trade_type_package.trade_info_class import TradeInformation
-from src.exchange_arbitrage_pkg.exchange_class.base_exchange_class import ExchangeAbstractClass
+from src.exchange_code_bases.exchange_class.base_exchange_class import ExchangeAbstractClass
 
 
 class Trade:
-    def __init__(self, exchange_platform: ExchangeAbstractClass,
-                 trade_type, symbol,
+    def __init__(self,
+                 exchange_platform: ExchangeAbstractClass,
+                 trade_type,
+                 symbol,
                  side=None, quantity=None, price=None,
                  stop_price=None, address=None, network=None,
                  current_price=None):

@@ -1,10 +1,11 @@
 from binance.client import Client
-import asyncio
 import traceback
 
+from binance.enums import ORDER_TYPE_MARKET
+
 from src.exchange_arbitrage_pkg.broker_utils.binance_utils.binance_symbol_utils import get_base_currency_binance
-from src.exchange_arbitrage_pkg.utils.symbol_pair_pkg.binance_symbol_funcs.information_fetch import \
-    get_adjusted_trade_amount
+
+from src.exchange_code_bases.binance_enhanced.binance_tools.trade_amount_adjust_Async import BinanceAmountAdjusterAsync
 
 
 async def check_balance(client, symbol):
@@ -37,6 +38,7 @@ async def place_limit_order(client, symbol, side, quantity, price):
 async def withdraw(client, symbol, quantity, address, network, debug=False):
     # Note: Ensure the withdrawal address is whitelisted in your Binance account
     base_currency = get_base_currency_binance(symbol)
+
     try:
         withdrawal = await client.withdraw(
             coin=base_currency,
@@ -52,13 +54,31 @@ async def withdraw(client, symbol, quantity, address, network, debug=False):
         print(f"Error withdrawing {base_currency} from Binance: {e}")
 
 
-async def buy_binance(client, symbol, quantity, price=None, debug=False):
-    adjusted_quantity = await get_adjusted_trade_amount(client, symbol, quantity)
+async def buy_binance(client, symbol, quantity, price=None, debug=False, buy_min_notional=True):
+    bi_amount_adjuster = BinanceAmountAdjusterAsync(client)  # Move it to the exchange code
+
+    adjusted_quantity = await bi_amount_adjuster.adjust_buy_amount(symbol=symbol,
+                                                                   quantity=quantity)
+    if adjusted_quantity < 0:
+        if buy_min_notional:
+            print(f"Adjusted quantity is negative for {symbol} on Binance. "
+                  f"Setting it to 0. Will try to buy anyway.")
+            adjusted_quantity = abs(adjusted_quantity)
+        else:
+            adjusted_quantity = 0
+    elif adjusted_quantity == 0:
+        print(f"Adjusted quantity is 0 for {symbol} on Binance. Will not try to buy.")
+        return None
+
     formatted_amount = "{:.8f}".format(adjusted_quantity)
     try:
         if price is None:
             # Market order
-            order = await client.order_market_buy(symbol=symbol, quantity=formatted_amount)
+            # order = await client.order_market_buy(symbol=symbol, quantity=adjusted_quantity)
+            order = await client.create_order(symbol=symbol,
+                                              side="BUY",
+                                              type=ORDER_TYPE_MARKET,
+                                              quantity=formatted_amount)
         else:
             # Limit order
             order = await client.order_limit_buy(symbol=symbol, quantity=formatted_amount, price=str(price))
@@ -70,7 +90,8 @@ async def buy_binance(client, symbol, quantity, price=None, debug=False):
 
 
 async def sell_binance(client, symbol, quantity, price=None, debug=False):
-    adjusted_quantity = await get_adjusted_trade_amount(client, symbol, quantity)
+    bi_amount_adjuster = BinanceAmountAdjusterAsync(client)  # Move it to the exchange code
+    adjusted_quantity = await bi_amount_adjuster.adjust_sell_amount(symbol, quantity)
     formatted_amount = "{:.8f}".format(adjusted_quantity)
     try:
         if price is None:

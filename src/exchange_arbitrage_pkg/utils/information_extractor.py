@@ -18,16 +18,9 @@ def calculate_diff_and_sort(extracted_info_in,
     extracted_info = extracted_info_in.copy()
     extracted_info[col_info_obj.price_diff_col] = extracted_info[first_ex_price_col] - extracted_info[second_ex_price_col]
     extracted_info[col_info_obj.current_price_diff_percentage_col] = extracted_info\
-        .apply(calculate_percentage_diff_bi_cb, axis=1)
+        .apply(lambda row: calculate_percentage_diff_bi_cb(row,
+                                                           first_ex_price_col,
+                                                           second_ex_price_col), axis=1)
     result_df = extracted_info[extracted_info[col_info_obj.current_price_diff_percentage_col] != 0].copy()
     result_df.sort_values(by=[col_info_obj.current_price_diff_percentage_col], ascending=[False], inplace=True)
     return result_df
-
-# def calculate_diff_and_sort(extracted_info_in):
-#     extracted_info = extracted_info_in.copy()
-#     extracted_info["price_diff_bi_cb"] = extracted_info["binance_price"] - extracted_info["coinbase_price"]
-#     extracted_info['current_price_diff_percentage'] = extracted_info.apply(calculate_percentage_diff_bi_cb, axis=1)
-#     result_df = extracted_info[extracted_info['current_price_diff_percentage'] != 0].copy()
-#     result_df.sort_values(by=['current_price_diff_percentage'], ascending=[False], inplace=True)
-#     return result_df
-

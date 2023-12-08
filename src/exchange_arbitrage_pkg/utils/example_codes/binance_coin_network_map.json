@@ -1,0 +1,379 @@
+{
+  'Polygon': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)',
+    'MATIC': 'Polygon'
+  },
+  'Aptos': {
+    'APT': 'APT'
+  },
+  'Stargate Finance': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'OriginTrail': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'SHIBA INU': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Golem': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Kadena': {
+    'KDA': 'Kadena',
+    'KDA0': 'Kadena',
+    'KDA1': 'Kadena',
+    'KDA10': 'Kadena',
+    'KDA11': 'Kadena',
+    'KDA12': 'Kadena',
+    'KDA13': 'Kadena',
+    'KDA14': 'Kadena',
+    'KDA15': 'Kadena',
+    'KDA16': 'Kadena',
+    'KDA17': 'Kadena',
+    'KDA18': 'Kadena',
+    'KDA19': 'Kadena',
+    'KDA2': 'Kadena',
+    'KDA3': 'Kadena',
+    'KDA4': 'Kadena',
+    'KDA5': 'Kadena',
+    'KDA6': 'Kadena',
+    'KDA7': 'Kadena',
+    'KDA8': 'Kadena',
+    'KDA9': 'Kadena'
+  },
+  'NEAR Protocol': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'NEAR': 'NEAR Protocol'
+  },
+  'Clover Finance': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Audius': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Flow': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'FLOW': 'Flow'
+  },
+  'Helium': {
+    'HNT': 'Helium',
+    'SOL': 'Solana'
+  },
+  'Compound': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Smooth Love Potion': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Nano': {
+    'NANO': 'NANO'
+  },
+  'DigiByte': {
+    'DGB': 'DigiByte'
+  },
+  '0x': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Santos FC Fan Token': {
+    'BSC': 'BNB Smart Chain (BEP20)'
+  },
+  'Old Stargate Finance': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Ampleforth Governance Token': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Alpine F1 Team Fan Token': {
+    'BSC': 'BNB Smart Chain (BEP20)'
+  },
+  'IOST': {
+    'IOST': 'IOST'
+  },
+  'Bitcoin Cash': {
+    'BCH': 'Bitcoin Cash',
+    'BNB': 'BNB Beacon Chain (BEP2)',
+    'BSC': 'BNB Smart Chain (BEP20)'
+  },
+  'Sui': {
+    'SUI': 'Sui'
+  },
+  'Lazio Fan Token': {
+    'BSC': 'BNB Smart Chain (BEP20)'
+  },
+  'OMG Network': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Polkadot': {
+    'DOT': 'Polkadot'
+  },
+  'Band Protocol': {
+    'BAND': 'Band Protocol',
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Astar': {
+    'ASTR': 'Astar Network'
+  },
+  '1inch': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Kyber Network Crystal Legacy': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Bitcoin': {
+    'BNB': 'BNB Beacon Chain (BEP2)',
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'BTC': 'Bitcoin'
+  },
+  'Arbitrum': {
+    'ARBITRUM': 'Arbitrum One',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'MIOTA': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'IOTA': 'MIOTA'
+  },
+  'Reef': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Avalanche': {
+    'AVAXC': 'AVAX C-Chain'
+  },
+  'League of Kingdoms': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Fantom': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)',
+    'FTM': 'Fantom'
+  },
+  'KyberNetwork': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Prometeus': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Harmony': {
+    'ONE': 'Harmony'
+  },
+  'Voxies': {
+    'MATIC': 'Polygon'
+  },
+  'iExecRLC': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Ontology Gas': {
+    'ONT': 'Ontology'
+  },
+  'Ankr': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Sushi': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'VITE': {
+    'BSC': 'BNB Smart Chain (BEP20)'
+  },
+  'Algorand': {
+    'ALGO': 'Algorand'
+  },
+  'Flare': {
+    'FLR': 'FLR'
+  },
+  'Cosmos': {
+    'ATOM': 'Cosmos',
+    'BSC': 'BNB Smart Chain (BEP20)'
+  },
+  'Orbs': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Livepeer': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Wrapped Bitcoin': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'BOBA token': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Ontology': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ONT': 'Ontology'
+  },
+  'Threshold': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Synthetix Network Token': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'DIA': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'FC Porto Fan Token': {
+    'BSC': 'BNB Smart Chain (BEP20)'
+  },
+  'Decentraland': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Alchemy Pay': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'API3': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Braintrust': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Oasis Network': {
+    'ROSE': 'Oasis Network'
+  },
+  'WAX': {
+    'ETH': 'Ethereum (ERC20)',
+    'WAX': 'WAX'
+  },
+  'VeThor Token': {
+    'VET': 'VeChain'
+  },
+  'Dai': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Songbird': {
+    'SGB': 'Songbird'
+  },
+  'Solana': {
+    'SOL': 'Solana'
+  },
+  'Numeraire': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Mines of Dalarnia': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Fetch.ai': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)',
+    'FET': 'Fetch.ai'
+  },
+  'Maker': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Ethereum Classic': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETC': 'Ethereum Classic'
+  },
+  'Internet Computer': {
+    'ICP': 'Internet Computer'
+  },
+  'BNB': {
+    'BNB': 'BNB Beacon Chain (BEP2)',
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Celer Network': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'OriginToken': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Blur': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Ethereum': {
+    'ARBITRUM': 'Arbitrum One',
+    'BNB': 'BNB Beacon Chain (BEP2)',
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)',
+    'OPTIMISM': 'Optimism'
+  },
+  'Zcash': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ZEC': 'Zcash'
+  },
+  'NEO': {
+    'NEO': 'Neo Legacy'
+  },
+  'Ren': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Celo': {
+    'CELO': 'Celo'
+  },
+  'Augur v2': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Loopring': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Augur': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Cardano': {
+    'ADA': 'Cardano',
+    'BNB': 'BNB Beacon Chain (BEP2)',
+    'BSC': 'BNB Smart Chain (BEP20)'
+  },
+  'ICON': {
+    'ETH': 'Ethereum (ERC20)',
+    'ICX': 'ICON'
+  },
+  'Request Network': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Storj': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Polymesh': {
+    'POLYX': 'POLYX'
+  },
+  'Loom Network': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Horizen': {
+    'ZEN': 'Horizen'
+  },
+  'SuperRare': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'VeChain': {
+    'VET': 'VeChain'
+  },
+  'PAX Gold': {
+    'ETH': 'Ethereum (ERC20)'
+  },
+  'Dogecoin': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'DOGE': 'Dogecoin'
+  },
+  'TetherUS': {
+    'AVAXC': 'AVAX C-Chain',
+    'BNB': 'BNB Beacon Chain (BEP2)',
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)',
+    'MATIC': 'Polygon',
+    'SOL': 'Solana',
+    'TRX': 'Tron (TRC20)'
+  },
+  'Bancor': {
+    'BSC': 'BNB Smart Chain (BEP20)',
+    'ETH': 'Ethereum (ERC20)'
+  }
+}
+

@@ -1,7 +1,5 @@
-from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseAPIKeys, CoinbaseAPIKeysSandBox
-from src.exchange_arbitrage_pkg.exchange_class.advance_trade_exchange import AdvanceTradeExchange
-from src.exchange_arbitrage_pkg.utils.symbol_pair_pkg.advancetrade_symbol_funcs.symbol_info_fetch_cb import \
-    adjust_trade_amount_coinbase
+from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseAPIKeys
+from src.exchange_code_bases.exchange_class.advance_trade_exchange import AdvanceTradeExchange
 import pprint
 
 

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.exchange_arbitrage_pkg.utils.calculation_utils import calculate_percentage_difference_2_values
+from src.exchange_arbitrage_pkg.utils.calculation_utils import calc_absolute_percentage_diff_2_values
 
 
 def get_usa_symbols(self):
@@ -27,8 +27,9 @@ def add_exchange_info(df_in, client):
     return combined_df
 
 
-def calculate_percentage_diff_bi_cb(row):
-    return calculate_percentage_difference_2_values(row['binance_price'], row['coinbase_price'])
+def calculate_percentage_diff_bi_cb(row, first_ex_price_col, second_ex_price_col):
+    return calc_absolute_percentage_diff_2_values(row[first_ex_price_col],
+                                                  row[second_ex_price_col])
 
 
 def update_data_df(original_df_in, new_df):

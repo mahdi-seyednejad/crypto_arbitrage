@@ -4,7 +4,7 @@ import pandas as pd
 from pandas import DataFrame
 from typing import List, Optional, Dict
 
-from src.exchange_arbitrage_pkg.exchange_class.base_exchange_class import ExchangeAbstractClass
+from src.exchange_code_bases.exchange_class import ExchangeAbstractClass
 from src.exchange_arbitrage_pkg.optimization_metrics_pkg.bid_based_operation import calculate_bid_ask_spread
 from src.exchange_arbitrage_pkg.optimization_metrics_pkg.liquidity_func import calculate_liquidity_from_order_book_depth
 from src.exchange_arbitrage_pkg.optimization_metrics_pkg.market_impact import calculate_market_impact
@@ -121,26 +121,26 @@ class SymbolEvaluatorArbitrage:
         return df  # Updated DataFrame with calculated metrics for both exchanges
 
     def extract_symbol_metrics_df(self, row, exchange: ExchangeAbstractClass, exchange_index: int):
-        exchange_name = exchange.name.value
+        exchange_name_val = exchange.name.value
         order_book_raw = exchange.get_order_book_sync(exchange.sync_client, row[self.col_info.symbol_col])
         order_book = remove_outliers(order_book_raw, self.hype_params.outlier_threshold)
         order_book.reset_index(inplace=True)
         order_book.drop(columns=['index'], inplace=True)
 
-        self.order_book_df_dict[f'{exchange_name}_{row[self.col_info.symbol_col]}'] = order_book
-        row[f'{exchange_name}_{self.bid_ask_spread_col}'] = calculate_bid_ask_spread(order_book)
-        row[f'{exchange_name}_{self.liquidity_col}'] = self._calculate_liquidity(order_book)
-        row[f'{exchange_name}_{self.max_sell_qty_col}'] = self._get_max_sell_qty_by_min_price(order_book, row)
-        row[f'{exchange_name}_{self.max_buy_qty_col}'] = self._calculate_max_buy_quantity(order_book, row)
-        row[f'{exchange_name}_{self.market_impact_max_sell_col}'] = calculate_market_impact(
-            order_book, row[f'{exchange_name}_{self.max_sell_qty_col}'])
+        self.order_book_df_dict[f'{exchange_name_val}_{row[self.col_info.symbol_col]}'] = order_book
+        row[f'{exchange_name_val}_{self.bid_ask_spread_col}'] = calculate_bid_ask_spread(order_book)
+        row[f'{exchange_name_val}_{self.liquidity_col}'] = self._calculate_liquidity(order_book)
+        row[f'{exchange_name_val}_{self.max_sell_qty_col}'] = self._get_max_sell_qty_by_min_price(order_book, row)
+        row[f'{exchange_name_val}_{self.max_buy_qty_col}'] = self._calculate_max_buy_quantity(order_book, row)
+        row[f'{exchange_name_val}_{self.market_impact_max_sell_col}'] = calculate_market_impact(
+            order_book, row[f'{exchange_name_val}_{self.max_sell_qty_col}'])
         return row
 
     def evaluate_symbols_for_trade_df(self, df_in, exchange_list):
         df = df_in.copy()
         df[self.market_impact_col] = 0
         for i, exchange in enumerate(exchange_list):
-            df = df.apply(lambda row:self.extract_symbol_metrics_df(row, exchange, i), axis=1)
+            df = df.apply(lambda row: self.extract_symbol_metrics_df(row, exchange, i), axis=1)
 
         return df
 
@@ -190,8 +190,9 @@ class SymbolEvaluatorArbitrage:
 
         return df_evaluated_gain
 
-    def evaluate_then_rank_best_symbols(self, df_in, exchange_list):
-        exchange_names = [exchange.name.value for exchange in exchange_list]
+    def evaluate_then_rank_best_symbols(self, df_in, exchange_pair):
+        # exchange_names = [exchange.name.value for exchange in exchange_pair]
+        exchange_names = exchange_pair.get_exchange_names_str_val()
 
         def get_average_liquidity(row):
             liquidity_cols = [f'{exchange_name}_{self.liquidity_col}' for exchange_name in exchange_names]
@@ -199,9 +200,9 @@ class SymbolEvaluatorArbitrage:
             return average_liquidity
 
         # df_evaluated = self.evaluate_symbols_for_trade(df_in, exchange_list)
-        df_evaluated = self.evaluate_symbols_for_trade_df(df_in, exchange_list)
+        df_evaluated = self.evaluate_symbols_for_trade_df(df_in, exchange_pair.get_list_of_exchanges())
         df_evaluated[self.liquidity_col] = df_evaluated.apply(get_average_liquidity, axis=1)
-        df_evaluated_gain = self.calculate_max_trade_and_gain(df_evaluated, exchange_list)
+        df_evaluated_gain = self.calculate_max_trade_and_gain(df_evaluated, exchange_pair.get_list_of_exchanges())
         # Updated sorting criteria
         sorting_col_tuples = [
             (self.max_gain_col, False),

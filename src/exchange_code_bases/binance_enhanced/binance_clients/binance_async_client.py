@@ -79,7 +79,7 @@ class BinanceAsyncClient(CryptoClient):
                     side=side,
                     type='LIMIT',
                     timeInForce='GTC',  # Good Till Canceled
-                    quantity=amount,
+                    quantity=str(amount),
                     price=str(price)
                 )
             else:
@@ -88,7 +88,7 @@ class BinanceAsyncClient(CryptoClient):
                     symbol=symbol,
                     side=side,
                     type='MARKET',
-                    quantity=amount
+                    quantity=str(amount)
                 )
             return order
         except Exception as e:
@@ -99,3 +99,34 @@ class BinanceAsyncClient(CryptoClient):
         if not self.client:
             await self.create_client()
         return await self.client.get_order_book_sync(symbol=symbol, limit=limit)
+
+    async def wait_for_deposit_confirmation_binance(self,
+                                                    symbol,
+                                                    expected_amount,
+                                                    check_interval,
+                                                    timeout,
+                                                    amount_loss):
+        """
+        Waits for the deposit to be confirmed on Binance.
+
+        :param client: Binance client instance.
+        :param symbol: Symbol of the cryptocurrency to check (e.g., 'BTC').
+        :param expected_amount: The amount of cryptocurrency expected to be deposited.
+        :param check_interval: Time in seconds between each balance check.
+        :param timeout: Maximum time in seconds to wait for the deposit.
+        :return: True if deposit is confirmed, False if timed out.
+        """
+        start_time = asyncio.get_event_loop().time()
+        while True:
+            current_balance_info = await self.client.get_asset_balance(symbol)
+            current_balance = float(current_balance_info['free'])
+            if current_balance >= expected_amount * (1 - amount_loss):
+                return True
+
+            elapsed_time = asyncio.get_event_loop().time() - start_time
+            if elapsed_time > timeout:
+                print(f"Timeout reached while waiting for deposit of {symbol} on Binance")
+                return False
+
+            await asyncio.sleep(check_interval)
+

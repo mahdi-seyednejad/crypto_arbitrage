@@ -2,6 +2,8 @@ import asyncio
 
 import socket
 
+from src.exchange_arbitrage_pkg.trade_runner_package.operation_executor_class import OperationExecutor
+
 # Store the original getaddrinfo to restore later if needed
 original_getaddrinfo = socket.getaddrinfo
 
@@ -12,22 +14,44 @@ def getaddrinfo_ipv4_only(host, port, family=0, type=0, proto=0, flags=0):
 socket.getaddrinfo = getaddrinfo_ipv4_only
 
 
-
+from src.exchange_code_bases.exchange_class.binance_exchange import BinanceExchange
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import BinanceAPIKeysHFT01, CoinbaseAPIKeys
-from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.exchange_machine_pkg.exchange_machine_steps import Mover
-from src.exchange_arbitrage_pkg.exchange_class.advance_trade_exchange import AdvanceTradeExchange
-from src.exchange_arbitrage_pkg.exchange_class.binance_exchange import BinanceExchange
+from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.arbitrage_machine_pkg.arbitrage_machine_steps import Mover
+from src.exchange_code_bases.exchange_class.advance_trade_exchange import AdvanceTradeExchange
 
+binance_exchange = BinanceExchange(BinanceAPIKeysHFT01())
+coinbase_exchange = AdvanceTradeExchange(CoinbaseAPIKeys())
 
-def test_movers():
-    binance_exchange = BinanceExchange(BinanceAPIKeysHFT01())
-    coinbase_exchange = AdvanceTradeExchange(CoinbaseAPIKeys())
+def smoke_test_movers_cb_to_bi():
     symbol = "VOXELUSDT"
     quantity = 29
 
-    mover = Mover(debug=True)
+    operation_executor = OperationExecutor(first_exchange=binance_exchange,
+                                           second_exchange=coinbase_exchange,
+                                           debug=True)
+
+    mover = Mover(operation_executor=operation_executor,
+                  debug=True)
+
     order_res = asyncio.run(mover.move_crypto(src_exchange_platform=coinbase_exchange,
                                               dst_exchange_platform=binance_exchange,
                                               symbol=symbol,
                                               quantity=quantity))
     print(order_res)
+
+
+def smoke_test_movers_bi_to_cb():
+    symbol = "BTCUSDT"
+    quantity = 0.0001
+
+    mover = Mover(debug=True)
+    order_res = asyncio.run(mover.move_crypto(src_exchange_platform=binance_exchange,
+                                              dst_exchange_platform=coinbase_exchange,
+                                              symbol=symbol,
+                                              quantity=quantity))
+    print(order_res)
+
+
+if __name__ == '__main__':
+    # smoke_test_movers_cb_to_bi()
+    smoke_test_movers_bi_to_cb()

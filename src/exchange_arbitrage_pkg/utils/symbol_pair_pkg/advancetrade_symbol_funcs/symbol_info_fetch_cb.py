@@ -1,5 +1,6 @@
 import requests
 import decimal
+import math
 
 
 def fetch_latest_price(symbol):
@@ -103,3 +104,29 @@ def adjust_trade_amount_coinbase(symbol, suggested_amount, side, price=None):
                           rounding=decimal.ROUND_DOWN)
 
     return final_amount
+
+
+def adjust_withdrawal_amount(currency, amount, balance):
+    # Fetch currency-specific details (assuming such a function exists)
+    decimal_precision, min_withdrawal, _ = fetch_trade_params_coinbase(currency)
+
+    # Convert decimal_precision to an integer
+    decimal_places = int(-math.log10(decimal_precision))
+
+    # Adjust for decimal precision
+    precision_decimal = decimal.Decimal(f'0.{"0" * (decimal_places - 1)}1')
+    adjusted_amount = decimal.Decimal(amount).quantize(precision_decimal, rounding=decimal.ROUND_DOWN)
+
+    # Check against minimum and maximum limits
+    if adjusted_amount< min_withdrawal:
+        raise ValueError(f"Amount is below the minimum withdrawal limit for {currency}")
+    # if adjusted_amount > max_withdrawal:
+    #     raise ValueError(f"Amount exceeds the maximum withdrawal limit for {currency}")
+    balance_decimal = decimal.Decimal(balance)
+    # Check account balance (assuming such a function exists)
+    if adjusted_amount > balance_decimal:
+        raise ValueError(f"Insufficient funds for withdrawal. Available balance: {balance}")
+
+    # Additional checks like network fees or address validation can be added here
+
+    return adjusted_amount

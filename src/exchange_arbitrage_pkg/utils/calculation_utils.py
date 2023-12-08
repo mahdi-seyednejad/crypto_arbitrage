@@ -1,4 +1,4 @@
-def calculate_percentage_difference_2_values(val1, val2):
+def calc_absolute_percentage_diff_2_values(val1, val2):
     smaller_price = min(val1, val2)
     price_difference = abs(val1 - val2)
     if smaller_price != 0:

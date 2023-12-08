@@ -13,6 +13,12 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
         self.thread_executor = ThreadPoolExecutor()
         self.client = None
 
+    @classmethod
+    async def create_async(cls, api_auth_obj: APIAuthClass):
+        self = AsyncAdvanceTradeClient(api_auth_obj)
+        # Any asynchronous initializations can go here
+        return self
+
     async def async_wrap(self, sync_function, *args, **kwargs):
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(self.thread_executor,
@@ -20,7 +26,7 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
 
     async def fetch_account_info(self):
         result = await self.async_wrap(super().fetch_account_info)
-        return result # await self.async_wrap(super().fetch_account_info())
+        return result  # await self.async_wrap(super().fetch_account_info())
 
     async def check_balance_coinbase(self, symbol):
         df = await self.async_wrap(super().fetch_account_info)
@@ -60,3 +66,32 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
     async def fetch_order_book(self, product_id, level=2):
         return await self.async_wrap(super().fetch_order_book, product_id, level)
 
+    async def wait_for_deposit_confirmation(self,
+                                            symbol,
+                                            expected_amount,
+                                            check_interval,
+                                            timeout,
+                                            amount_loss):
+        """
+        Waits for the deposit to be confirmed on the destination exchange.
+        :param client: Coinbase client instance.
+        :param symbol: Symbol of the cryptocurrency to check.
+        :param expected_amount: The amount of cryptocurrency expected to be deposited.
+        :param check_interval: Time in seconds between each balance check.
+        :param timeout: Maximum time in seconds to wait for the deposit.
+        :param amount_loss: The amount of moved crypto that might be lost in the transfer (due to commission, etc)
+        :return: True if deposit is confirmed, False if timed out.
+        """
+        start_time = asyncio.get_event_loop().time()
+        while True:
+            current_balance, has_bought_before = await self.check_balance_coinbase(symbol)
+            if has_bought_before:
+                if current_balance >= expected_amount * (1 - amount_loss):
+                    return True
+
+            elapsed_time = asyncio.get_event_loop().time() - start_time
+            if elapsed_time > timeout:
+                print(f"Timeout reached while waiting for deposit of {symbol}")
+                return False
+
+            await asyncio.sleep(check_interval)

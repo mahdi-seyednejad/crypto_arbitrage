@@ -1,5 +1,5 @@
 from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.trade_type_package.trade_class import Trade
-from src.exchange_arbitrage_pkg.trade_runner_package.trade_runner_helpers import execute_binance_trade, \
+from src.exchange_arbitrage_pkg.trade_runner_package.operation_executor_class import execute_binance_trade, \
     execute_coinbase_trade
 
 

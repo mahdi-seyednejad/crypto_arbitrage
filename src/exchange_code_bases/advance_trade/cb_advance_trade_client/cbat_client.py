@@ -26,20 +26,37 @@ class CbAdvanceTradeClient(CryptoClient):
         response_df = fetch_account_info_to_dataframe(url=url, auth=self.auth)
         return response_df
 
+    def fetch_supported_networks(self):
+        # Using the Exchange/Pro API endpoint for currencies
+        url = f'https://api.exchange.coinbase.com/currencies'
+        try:
+            response = requests.get(url, auth=self.auth)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                # Handle error response
+                return response.json()
+        except Exception as e:
+            print(f"Error fetching supported networks from Coinbase: {e}")
+            return {}
+
     def withdraw_to_address(self, address, amount, currency):
         url = f'{self.base_url}/v2/accounts/{currency}/transactions'
         data = {
             'type': 'send',
             'to': address,
-            'amount': amount,
+            'amount': str(amount),
             'currency': currency
         }
-        response = requests.post(url, json=data, auth=self.auth)
-        if response.status_code in [200, 201]:
-            return response.json()
-        else:
-            # Handle error
-            return response.json()
+        try:
+            response = requests.post(url, json=data, auth=self.auth)
+            if response.status_code in [200, 201]:
+                return response.json()
+            else:
+                # Handle error
+                return response.json()
+        except Exception as e:
+            print(f"Withdrawing selling {currency} on Binance: {e}")
 
     def check_balance_coinbase(self, symbol):
         df = self.fetch_account_info()

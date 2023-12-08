@@ -9,13 +9,9 @@ def get_latest_price(product_id, public_client):
         return float(ticker['price'])
     except Exception as e:
         return None
-        # if "delisted products" in str(e):
-        #     return None  # or np.nan
-        # else:
-        #     raise
 
 
-def get_latest_prices_coinbase_pro(coinbase_client, sample_size):
+def get_latest_prices_coinbase_at(coinbase_client, sample_size):
     # public_client = cbpro.PublicClient()
     products = coinbase_client.get_products()
 
@@ -61,9 +57,4 @@ def get_order_book_coinbase(coinbase_client, product_id, depth):
     df_order_book['size'] = pd.to_numeric(df_order_book['size'])
 
     return df_order_book
-
-# Example usage
-# coinbase_client = cbpro.PublicClient() # Uncomment and initialize your Coinbase Pro client
-# order_book = get_order_book_coinbase(coinbase_client, 'BTC-USD', level=2)
-# print(order_book)
 

@@ -1,7 +1,7 @@
 import asyncio
 from typing import List
 
-from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.exchange_machine_pkg.exchange_machine import ArbitrageMachine
+from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.arbitrage_machine_pkg.arbitrage_machine import ArbitrageMachine
 
 
 class TradeRunner:
