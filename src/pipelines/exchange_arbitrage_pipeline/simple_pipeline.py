@@ -1,3 +1,14 @@
+##########   Force to use IPv4   #########
+import socket
+# Store the original getaddrinfo to restore later if needed
+original_getaddrinfo = socket.getaddrinfo
+def getaddrinfo_ipv4_only(host, port, family=0, type=0, proto=0, flags=0):
+    return original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+# Monkey patch the socket module
+socket.getaddrinfo = getaddrinfo_ipv4_only
+##########################################
+
+
 import asyncio
 from typing import Type, Optional
 
@@ -50,12 +61,6 @@ class SimplePipeline:
 
     async def run(self):
         diff_df_maker_obj = self.get_diff_df_maker_obj(diff_df_maker_class=PriceDiffExtractor)
-
-        # executor_object = ArbitrageMachineMaker(exchange_pair=self.exchange_pair,
-        #                                         col_info_obj=self.column_info_obj,
-        #                                         symbol_evaluator_obj=self.symbol_evaluator_obj,
-        #                                         trade_hy_params_obj=self.trade_hyper_parameters,
-        #                                         debug=self.debug)
         executor_object = ArbitrageMachineMakerPunch(exchange_pair=self.exchange_pair,
                                                      col_info_obj=self.column_info_obj,
                                                      symbol_evaluator_obj=self.symbol_evaluator_obj,
@@ -77,7 +82,11 @@ if __name__ == '__main__':
                                         outlier_threshold=2.1,
                                         fetch_period=30,
                                         run_number=10,
-                                        budget_factor=0.5)
+                                        num_of_top_symbols=2,
+                                        budget_factor=0.5,
+                                        acceptable_amount_diff_percent=0.5,
+                                        min_acceptable_budget=10,
+                                        secondary_symbol_rank=2)
 
     pipeline = SimplePipeline(trade_hyper_parameters=tr_hype_param,
                               sample_size=Sample_Size,

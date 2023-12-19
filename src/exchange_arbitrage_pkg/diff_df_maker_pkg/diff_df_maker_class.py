@@ -147,7 +147,7 @@ def print_for_testing(df):
 if __name__ == '__main__':
     DEBUG = True
     sample_size = None # Just for testing
-    run_number = 20
+    run_number = 10
 
     col_obj = ColumnInfoClass()
     binance_exchange = BinanceExchange(BinanceAPIKeys())
