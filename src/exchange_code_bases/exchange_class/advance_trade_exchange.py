@@ -1,9 +1,11 @@
+import asyncio
+
 import cbpro
 import pandas as pd
 
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
 from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
-from src.exchange_arbitrage_pkg.broker_utils.coinbase_utils.coinbase_symbol_utils import get_base_from_pair_coinbase
+from src.exchange_arbitrage_pkg.broker_utils.binance_utils.binance_symbol_utils import get_base_currency_bi_cb
 from src.exchange_code_bases.exchange_class.advance_trade_exchange_tools.order_parser import \
     get_order_output_quantity
 from src.exchange_code_bases.exchange_class.base_exchange_class import ExchangeAbstractClass
@@ -24,6 +26,7 @@ class AdvanceTradeExchange(ExchangeAbstractClass):
         self.async_obj = None
         self.price_col = 'adv_trade_price'
         self.vol_col = "adv_trade_volume_col"
+        self.transaction_fee_rate = 0.001
 
     async def create_async_client(self):
         self.async_obj = AsyncAdvanceTradeClient(api_auth_obj=self.api_auth_obj)
@@ -76,15 +79,44 @@ class AdvanceTradeExchange(ExchangeAbstractClass):
                                      expected_amount,
                                      check_interval,
                                      timeout,
-                                     amount_loss):
-        if '-' in symbol:
-            base_symbol = get_base_from_pair_coinbase(symbol)
-        else:
-            symbol_cb = convert__symbol_bi_to_cb(symbol)
-            base_symbol = get_base_from_pair_coinbase(symbol_cb)
-        return await self.async_client \
-            .wait_for_deposit_confirmation(symbol=base_symbol,
-                                           expected_amount=expected_amount,
-                                           check_interval=check_interval,
-                                           timeout=timeout,
-                                           amount_loss=amount_loss)
+                                     amount_loss,
+                                     second_chance,
+                                     debug):
+        base_symbol = get_base_currency_bi_cb(symbol)
+        for i in range(2):
+            result = await self.async_client \
+                .wait_for_deposit_confirmation(symbol=base_symbol,
+                                               expected_amount=expected_amount,
+                                               check_interval=check_interval,
+                                               timeout=timeout,
+                                               amount_loss=amount_loss,
+                                               debug=debug)
+            if result:
+                return result
+            else:
+                if second_chance:
+                    if debug:
+                        print(f"Second chance for {symbol} on Coinbase advance trade")
+                        print("Waiting ....")
+                    await asyncio.sleep(timeout / 2)
+                else:
+                    break
+        return False
+        # result = await self.async_client \
+        #     .wait_for_deposit_confirmation(symbol=base_symbol,
+        #                                    expected_amount=expected_amount,
+        #                                    check_interval=check_interval,
+        #                                    timeout=timeout,
+        #                                    amount_loss=amount_loss)
+        # if not result:
+        #     if second_chance:
+        #         if debug:
+        #             print(f"Second chance for {symbol} on Coinbase advance trade")
+        #         await asyncio.sleep(timeout/2)
+        #         result = await self.async_client \
+        #             .wait_for_deposit_confirmation(symbol=base_symbol,
+        #                                            expected_amount=expected_amount,
+        #                                            check_interval=check_interval,
+        #                                            timeout=timeout,
+        #                                            amount_loss=amount_loss)
+        # return result

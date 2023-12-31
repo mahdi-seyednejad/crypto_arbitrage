@@ -13,13 +13,6 @@ socket.getaddrinfo = getaddrinfo_ipv4_only
 
 import asyncio
 
-from src.exchange_arbitrage_pkg.broker_utils.binance_utils.binance_trade_codes import withdraw, \
-    get_deposit_address_binance
-from src.exchange_arbitrage_pkg.broker_utils.coinbase_utils.coinbase_trade_code import get_deposit_address_coinbase, \
-    withdraw_coinbase
-from src.exchange_arbitrage_pkg.trade_runner_package.operation_executor_class import OperationExecutor
-from src.exchange_arbitrage_pkg.utils.binance_coinbase_convertor import convert__symbol_bi_to_cb
-
 from src.exchange_code_bases.exchange_class.binance_exchange import BinanceExchange
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import BinanceAPIKeysHFT01, CoinbaseAPIKeys
 from src.exchange_code_bases.exchange_class.advance_trade_exchange import AdvanceTradeExchange
@@ -37,7 +30,8 @@ async def busy_waiting_cb_test():
                                                                   expected_amount=desired_quantity,
                                                                   check_interval=5,
                                                                   timeout=420,
-                                                                  amount_loss=0.05)
+                                                                  amount_loss=0.05,
+                                                                  second_chance=True)
 
     print(f"Was received: {was_received}")
 

@@ -1,7 +1,36 @@
 from typing import Dict
 
-# bi_cb_exchange_price_cols = {"binance_price_col": "binance_price",
-#                              "coinbase_price_col": "coinbase_price"}
+
+class ColumnOrderBookClass:
+    def __init__(self,
+                 symbol_col='symbol',
+                 price_col='price',
+                 volume_col='volume',
+                 side_col='side',
+                 exchange_name_col='exchange_name',
+                 num_orders_col='num_orders',
+                 trans_fee_col='transaction_fee',
+                 profit_col='profit',
+                 spent_money_col='spent_money',
+                 sold_money_col='sold_money',
+                 trading_volume_col='trading_volume',
+                 download_time_col='download_time'
+                 ):
+        self.symbol_col = symbol_col
+        self.price_col = price_col
+        self.volume_col = volume_col
+        self.side_col = side_col
+        self.exchange_name_col = exchange_name_col
+        self.num_orders_col = num_orders_col
+        self.trans_fee_col = trans_fee_col
+        self.profit_col = profit_col
+        self.spent_money_col = spent_money_col
+        self.sold_money_col = sold_money_col
+        self.trading_volume_col = trading_volume_col
+        self.download_time_col = download_time_col
+
+    def get_order_eval_out_cols(self):
+        return [self.profit_col, self.spent_money_col, self.sold_money_col, self.trading_volume_col]
 
 
 class ColumnSymbolEvalClass:
@@ -38,19 +67,27 @@ class ColumnInfoClass:
     def __init__(self,
                  symbol_col="symbol",
                  volume_col="volume",
+                 base_coin_id_col="base_coin_id",
+                 src_exchange_name_col="src_exchange_name",
+                 dst_exchange_name_col="dst_exchange_name",
                  # exchange_price_cols: Dict[str, str] = None, # These things should be kept in the exchange. Not here
                  exchange_volume_cols: Dict[str, str] = None,
                  price_diff_col="price_diff_bi_cb",
                  current_price_diff_percentage_col="current_price_diff_percentage",
                  price_change_24h_col="price_change_24h",
                  recency_col="recency",
-                 current_time_col="current_time",
+                 current_time_col="system_time",
                  bi_price_change_24h="binance_priceChangePercent_24h",
                  is_good_to_trade_col="is_good_to_trade_col",
-                 symbol_eval_col_obj: ColumnSymbolEvalClass = ColumnSymbolEvalClass()
+                 withdraw_fee_col="withdraw_fee",
+                 symbol_eval_col_obj: ColumnSymbolEvalClass = ColumnSymbolEvalClass(),
+                 order_book_col_obj: ColumnOrderBookClass = ColumnOrderBookClass()
                  ):
         self.symbol_col = symbol_col
         self.volume_col = volume_col
+        self.base_coin_id_col = base_coin_id_col
+        self.src_exchange_name_col = src_exchange_name_col
+        self.dst_exchange_name_col = dst_exchange_name_col
         self.price_diff_col = price_diff_col
         self.current_price_diff_percentage_col = current_price_diff_percentage_col
         self.price_change_24h_col = price_change_24h_col
@@ -58,18 +95,15 @@ class ColumnInfoClass:
         self.current_time_col = current_time_col
         self.bi_price_change_24h = bi_price_change_24h
         self.is_good_to_trade_col = is_good_to_trade_col
+        self.withdraw_fee_col = withdraw_fee_col
         self.symbol_eval_col_obj = symbol_eval_col_obj
 
         if exchange_volume_cols is None:
             self.exchange_volume_cols = {"binance_volume_col": "binance_volume_24h"}
         else:
             self.exchange_volume_cols = exchange_volume_cols
-        #
-        # if exchange_price_cols is None:
-        #     self.exchange_price_cols = bi_cb_exchange_price_cols
-        # else:
-        #     self.exchange_price_cols = exchange_price_cols
+
+        self.order_book_col_obj = order_book_col_obj
 
     def get_max_trade_qty_col(self):
         return self.symbol_eval_col_obj.max_trade_qty_col
-

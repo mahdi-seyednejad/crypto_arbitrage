@@ -1,3 +1,4 @@
+import asyncio
 
 import pandas as pd
 import cbpro
@@ -23,6 +24,22 @@ def get_latest_prices_coinbase_at(coinbase_client, sample_size):
 
     # Fetch and add prices
     df_products['price'] = df_products['id'].apply(lambda x: get_latest_price(x, coinbase_client))
+
+    return df_products
+
+
+async def get_latest_prices_coinbase_at_async(coinbase_client, sample_size):
+    products = coinbase_client.get_products()
+    df_products = pd.DataFrame(products)
+
+    if sample_size:
+        df_products = df_products.sample(sample_size)
+
+    async def fetch_price(product_id):
+        return await asyncio.to_thread(get_latest_price, product_id, coinbase_client)
+
+    prices = await asyncio.gather(*[fetch_price(pid) for pid in df_products['id']])
+    df_products['price'] = prices
 
     return df_products
 

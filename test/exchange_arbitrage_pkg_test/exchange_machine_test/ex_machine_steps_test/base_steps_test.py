@@ -21,14 +21,13 @@ from src.exchange_code_bases.exchange_class.advance_trade_exchange import Advanc
 
 binance_exchange = BinanceExchange(BinanceAPIKeysHFT01())
 coinbase_exchange = AdvanceTradeExchange(CoinbaseAPIKeys())
+operation_executor = OperationExecutor(first_exchange=binance_exchange,
+                                       second_exchange=coinbase_exchange,
+                                       debug=True)
 
 def smoke_test_movers_cb_to_bi():
-    symbol = "VOXELUSDT"
+    symbol = "AXLUSDT"
     quantity = 29
-
-    operation_executor = OperationExecutor(first_exchange=binance_exchange,
-                                           second_exchange=coinbase_exchange,
-                                           debug=True)
 
     mover = Mover(operation_executor=operation_executor,
                   debug=True)
@@ -44,14 +43,30 @@ def smoke_test_movers_bi_to_cb():
     symbol = "BTCUSDT"
     quantity = 0.0001
 
-    mover = Mover(debug=True)
+    mover = Mover(operation_executor=operation_executor,
+                  debug=True)
+
     order_res = asyncio.run(mover.move_crypto(src_exchange_platform=binance_exchange,
                                               dst_exchange_platform=coinbase_exchange,
                                               symbol=symbol,
                                               quantity=quantity))
     print(order_res)
 
+def smoke_test_persistent_movers_cb_to_bi():
+    symbol = "LOKAUSDT"
+    quantity = 50
+
+    mover = Mover(operation_executor=operation_executor,
+                  debug=True)
+
+    order_res = asyncio.run(mover.move_crypto(src_exchange_platform=coinbase_exchange,
+                                              dst_exchange_platform=binance_exchange,
+                                              symbol=symbol,
+                                              quantity=quantity))
+    print(order_res)
+
 
 if __name__ == '__main__':
+    smoke_test_persistent_movers_cb_to_bi()
     # smoke_test_movers_cb_to_bi()
-    smoke_test_movers_bi_to_cb()
+    # smoke_test_movers_bi_to_cb()

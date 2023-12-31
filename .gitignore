@@ -157,4 +157,16 @@ cython_debug/
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+.idea/
+
+*.env
+.vscode/
+
+git_pull_script.sh
+
+# Ignore files containing "log" in their names
+*log*
+
+# Ignore files with the .pkl extension
+*.pkl
+/src/exchange_arbitrage_pkg/diff_df_maker_pkg/sample_results/

@@ -3,6 +3,8 @@ import pandas as pd
 
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
 from src.exchange_code_bases.abstract_classes.crypto_clients import CryptoClient
+from src.exchange_code_bases.binance_enhanced.crypto_network_binance.binance_network_extractor import \
+    process_coins_info_binance_df
 
 
 class BinanceSyncClient(CryptoClient):
@@ -46,7 +48,10 @@ class BinanceSyncClient(CryptoClient):
                 'currency': account['asset']
             }
         else:
-            return {'message': 'Currency not found'}
+            return {
+                'balance': 0,
+                'currency': currency
+            }
 
     def fetch_available_cryptos(self):
         account_info = self.fetch_account_info()
@@ -101,3 +106,8 @@ class BinanceSyncClient(CryptoClient):
     def fetch_order_book(self, symbol, limit=100):
         # Implement the method using Binance API
         return self.client.get_order_book(symbol=symbol, limit=limit)
+
+    def get_all_symbol_info(self):
+        all_coins_info = self.client.get_all_coins_info()
+        df, unique_networks, coin_network_mapping = process_coins_info_binance_df(all_coins_info)
+        return df

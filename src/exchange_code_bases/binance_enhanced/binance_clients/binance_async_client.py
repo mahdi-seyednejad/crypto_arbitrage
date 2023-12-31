@@ -47,7 +47,10 @@ class BinanceAsyncClient(CryptoClient):
                 'currency': account['asset']
             }
         else:
-            return {'message': 'Currency not found'}
+            return {
+                'balance': 0,
+                'currency': currency
+            }
 
     async def fetch_available_cryptos(self):
         account_info = await self.fetch_account_info()
@@ -105,22 +108,27 @@ class BinanceAsyncClient(CryptoClient):
                                                     expected_amount,
                                                     check_interval,
                                                     timeout,
-                                                    amount_loss):
+                                                    amount_loss,
+                                                    debug):
         """
         Waits for the deposit to be confirmed on Binance.
-
         :param client: Binance client instance.
         :param symbol: Symbol of the cryptocurrency to check (e.g., 'BTC').
         :param expected_amount: The amount of cryptocurrency expected to be deposited.
         :param check_interval: Time in seconds between each balance check.
         :param timeout: Maximum time in seconds to wait for the deposit.
+        :param amount_loss: The amount of moved crypto that might be lost in the transfer (due to commission, etc)
         :return: True if deposit is confirmed, False if timed out.
         """
         start_time = asyncio.get_event_loop().time()
         while True:
             current_balance_info = await self.client.get_asset_balance(symbol)
             current_balance = float(current_balance_info['free'])
-            if current_balance >= expected_amount * (1 - amount_loss):
+            min_expected_amount = expected_amount * (1 - amount_loss)
+            if debug:
+                print(f"Current balance for {symbol} on Binance: {current_balance}")
+                print(f"Expected balance for {symbol} on Binance: {min_expected_amount}")
+            if current_balance >= min_expected_amount:
                 return True
 
             elapsed_time = asyncio.get_event_loop().time() - start_time

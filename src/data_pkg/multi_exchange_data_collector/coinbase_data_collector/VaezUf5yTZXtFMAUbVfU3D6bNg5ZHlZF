@@ -1,0 +1,4 @@
+{"type": "error", "message": "Failed to subscribe", "reason": "level2, level3, and full channels now require authentication. https://docs.cloud.coinbase.com/exchange/docs/websocket-auth"}
+{"type": "subscriptions", "channels": []}
+{"type": "error", "message": "Authentication Failed", "reason": "authentication required"}
+{"type": "error", "message": "authentication failure"}

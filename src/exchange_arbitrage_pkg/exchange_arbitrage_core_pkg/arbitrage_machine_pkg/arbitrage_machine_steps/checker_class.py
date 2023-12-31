@@ -2,7 +2,7 @@ from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.trade_type_package.t
 
 
 class Checker:
-    def __init__(self,operation_executor,  debug=False):
+    def __init__(self, operation_executor,  debug=False):
         self.operation_executor = operation_executor
         self.debug = debug
 
@@ -16,4 +16,7 @@ class Checker:
         current_symbol_balance = await self.operation_executor\
             .execute_trade(check_trade,
                            self.debug)
+        if current_symbol_balance is None:
+            print(f"!!! Error !!! : {exchange_platform.name} did not return the balance of {symbol}")
+            return 0.0
         return float(current_symbol_balance)

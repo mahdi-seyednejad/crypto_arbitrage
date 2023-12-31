@@ -20,4 +20,9 @@ class Trade:
         self.network = network
         self.current_price = current_price
 
+    def __str__(self):
+        return f"Trade: {self.__dict__}"
+
+
+
 

@@ -35,7 +35,7 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
             matching_account = df[df['currency.code'] == symbol.split("-")[0]]
             if not matching_account.empty:
                 # Assuming 'balance.amount' is the column name for balance amounts
-                return matching_account['balance.amount'].iloc[0], True
+                return float(matching_account['balance.amount'].iloc[0]), True
             else:
                 return 0, False
         except Exception as e:
@@ -47,6 +47,10 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
 
     async def withdraw_to_address(self, address, amount, currency):
         return await self.async_wrap(super().withdraw_to_address, address, amount, currency)
+
+    async def withdraw_to_address_persistent(self, address, amount, currency, amount_adjuster, max_attempts):
+        return await self.async_wrap(super().withdraw_to_address_persistent, address, amount,
+                                     currency, amount_adjuster, max_attempts)
 
     async def fetch_deposit_address(self, currency):
         return await self.async_wrap(super().fetch_deposit_address, currency)
@@ -71,10 +75,10 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
                                             expected_amount,
                                             check_interval,
                                             timeout,
-                                            amount_loss):
+                                            amount_loss,
+                                            debug):
         """
         Waits for the deposit to be confirmed on the destination exchange.
-        :param client: Coinbase client instance.
         :param symbol: Symbol of the cryptocurrency to check.
         :param expected_amount: The amount of cryptocurrency expected to be deposited.
         :param check_interval: Time in seconds between each balance check.
@@ -85,8 +89,12 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
         start_time = asyncio.get_event_loop().time()
         while True:
             current_balance, has_bought_before = await self.check_balance_coinbase(symbol)
+            min_expected_amount = expected_amount * (1 - amount_loss)
+            if debug:
+                print(f"Current balance for {symbol} on Binance: {current_balance}")
+                print(f"Expected balance for {symbol} on Binance: {min_expected_amount}")
             if has_bought_before:
-                if current_balance >= expected_amount * (1 - amount_loss):
+                if current_balance >= min_expected_amount:
                     return True
 
             elapsed_time = asyncio.get_event_loop().time() - start_time

@@ -28,5 +28,14 @@ General_Preferred_Networks = [
     {"crypto": "Dash", "id": "DASH", "preferred_network": "Dash Network", "network_id": "DASH"},
     {"crypto": "Zcash", "id": "ZEC", "preferred_network": "Zcash Network", "network_id": "ZEC"},
     {"crypto": "Compound", "id": "COMP", "preferred_network": "Ethereum Network", "network_id": "ETH"},
-    {"crypto": "Maker", "id": "MKR", "preferred_network": "Ethereum Network", "network_id": "ETH"}
+    {"crypto": "Maker", "id": "MKR", "preferred_network": "Ethereum Network", "network_id": "ETH"},
+    {"crypto": "Enjin", "id": "ENJ", "preferred_network": "Ethereum Network (ERC20)", "network_id": "ETH"},
+
+]
+
+Binance_network_exceptions = [
+    {"binance_symbol": "AXL",
+     'coinbase_symbol': "WAXL",
+     "binance_network": "ETH",
+     "coinbase_network": "ethereum"}
 ]

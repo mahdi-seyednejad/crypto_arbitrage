@@ -1,9 +1,12 @@
 import decimal
+import math
 
 
 class BinanceAmountAdjusterAsync:
     def __init__(self, client):
         self.client = client
+
+    import decimal
 
     async def adjust_sell_amount(self, symbol, quantity):
         symb_info = await self.client.get_symbol_info(symbol)
@@ -15,18 +18,50 @@ class BinanceAmountAdjusterAsync:
     async def apply_market_lot_size_sell(self, symb_info, proposed_quant):
         res_dict = await self.search_dict(symb_info["filters"], "filterType", "LOT_SIZE")
         max_quant = float(res_dict['maxQty'])
-        quant_mx = min(proposed_quant, max_quant)
-
         min_quant = float(res_dict['minQty'])
-        quantity = max(quant_mx, min_quant)
-
         step_size = float(res_dict["stepSize"])
-        if (step_size == 0) or ((quantity % step_size) == 0):
-            return quantity
+
+        # Ensure proposed quantity is within min and max limits
+        quantity = min(max(proposed_quant, min_quant), max_quant)
+
+        # Adjust quantity according to step size
+        if step_size > 0:
+            # Find the number of decimals to round to
+            decimal_places = max(-decimal.Decimal(str(step_size)).as_tuple().exponent, 0)
+            # Adjust the quantity
+            adjusted_quantity = math.floor(quantity / step_size) * step_size
+            adjusted_quantity = round(adjusted_quantity, decimal_places)
         else:
-            d = decimal.Decimal(str(step_size))
-            decimal_n = abs(d.as_tuple().exponent)
-            return round(quantity, decimal_n)
+            adjusted_quantity = quantity
+
+        return adjusted_quantity
+
+    async def search_dict(self, lst, key, value):
+        # Assuming you have implemented this function to search in the filters list
+        pass
+
+    # async def adjust_sell_amount(self, symbol, quantity):
+    #     symb_info = await self.client.get_symbol_info(symbol)
+    #     if symb_info is None:
+    #         raise ValueError(f"No symbol information available for {symbol}")
+    #
+    #     return await self.apply_market_lot_size_sell(symb_info, quantity)
+    #
+    # async def apply_market_lot_size_sell(self, symb_info, proposed_quant):
+    #     res_dict = await self.search_dict(symb_info["filters"], "filterType", "LOT_SIZE")
+    #     max_quant = float(res_dict['maxQty'])
+    #     quant_mx = min(proposed_quant, max_quant)
+    #
+    #     min_quant = float(res_dict['minQty'])
+    #     quantity = max(quant_mx, min_quant)
+    #
+    #     step_size = float(res_dict["stepSize"])
+    #     if (step_size == 0) or ((quantity % step_size) == 0):
+    #         return quantity
+    #     else:
+    #         d = decimal.Decimal(str(step_size))
+    #         decimal_n = abs(d.as_tuple().exponent)
+    #         return round(quantity, decimal_n)
 
     async def apply_price_filter(self, symb_info, avail_money):
         res_dict = await self.search_dict(symb_info["filters"], "filterType", "PRICE_FILTER")

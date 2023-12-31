@@ -119,6 +119,7 @@ def adjust_withdrawal_amount(currency, amount, balance):
 
     # Check against minimum and maximum limits
     if adjusted_amount< min_withdrawal:
+        print(f"Amount is below the minimum withdrawal limit for {currency}")
         raise ValueError(f"Amount is below the minimum withdrawal limit for {currency}")
     # if adjusted_amount > max_withdrawal:
     #     raise ValueError(f"Amount exceeds the maximum withdrawal limit for {currency}")
@@ -128,5 +129,4 @@ def adjust_withdrawal_amount(currency, amount, balance):
         raise ValueError(f"Insufficient funds for withdrawal. Available balance: {balance}")
 
     # Additional checks like network fees or address validation can be added here
-
     return adjusted_amount

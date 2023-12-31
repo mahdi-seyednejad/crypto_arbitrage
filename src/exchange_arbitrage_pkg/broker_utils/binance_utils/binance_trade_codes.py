@@ -8,7 +8,7 @@ from src.exchange_arbitrage_pkg.broker_utils.binance_utils.binance_symbol_utils 
 from src.exchange_code_bases.binance_enhanced.binance_tools.trade_amount_adjust_Async import BinanceAmountAdjusterAsync
 
 
-async def check_balance(client, symbol):
+async def check_balance_binance(client, symbol):
     try:
         balance = await client.get_asset_balance(asset=symbol)
         if balance is None:
@@ -35,7 +35,7 @@ async def place_limit_order(client, symbol, side, quantity, price):
     return order
 
 
-async def withdraw(client, symbol, quantity, address, network, debug=False):
+async def withdraw_binance(client, symbol, quantity, address, network, debug=False):
     # Note: Ensure the withdrawal address is whitelisted in your Binance account
     base_currency = get_base_currency_binance(symbol)
 
@@ -48,10 +48,11 @@ async def withdraw(client, symbol, quantity, address, network, debug=False):
 
         )
         if debug:
-            print(f"Withdrawal of {base_currency}: {withdrawal}")
+            print(f"Binance - Withdrawal of {base_currency}: {withdrawal}")
         return withdrawal
     except Exception as e:
         print(f"Error withdrawing {base_currency} from Binance: {e}")
+        return None
 
 
 async def buy_binance(client, symbol, quantity, price=None, debug=False, buy_min_notional=True):
@@ -83,7 +84,7 @@ async def buy_binance(client, symbol, quantity, price=None, debug=False, buy_min
             # Limit order
             order = await client.order_limit_buy(symbol=symbol, quantity=formatted_amount, price=str(price))
         if debug:
-            print(f"Buy order status for {symbol}: {order}")
+            print(f"On Binance: Buy order status for {symbol}: {order}")
         return order
     except Exception as e:
         print(f"Error buying {symbol} on Binance: {e}")
@@ -113,7 +114,7 @@ async def get_deposit_address_binance(client, symbol, debug=False):
         deposit_address = await client.get_deposit_address(coin=base_currency)
         # address = client.fetch_deposit_address(asset=base_currency)
         if debug:
-            print(f"Deposit address for {base_currency}: {'deposit_address'}")
+            print(f"Binance - Deposit address for {base_currency}: {'deposit_address'}")
 
         return deposit_address['address']
     except Exception as e:

@@ -1,3 +1,5 @@
+import asyncio
+
 import pandas as pd
 
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
@@ -18,6 +20,7 @@ class BinanceExchange(ExchangeAbstractClass):
         self.vol_col = "binance_volume_col"
         self.budget = None
         self.price_col = 'binance_price'
+        self.transaction_fee_rate = 0.001
 
     async def create_async_client(self):
         self.async_obj = BinanceAsyncClient(api_auth_obj=self.api_auth_obj)
@@ -69,12 +72,53 @@ class BinanceExchange(ExchangeAbstractClass):
                                      expected_amount,
                                      check_interval,
                                      timeout,
-                                     amount_loss
+                                     amount_loss,
+                                     second_chance,
+                                     debug
                                      ):
         base_symbol = get_base_currency_binance(symbol)
-        return await self.async_obj \
-            .wait_for_deposit_confirmation_binance(symbol=base_symbol,
-                                                   expected_amount=expected_amount,
-                                                   check_interval=check_interval,
-                                                   timeout=timeout,
-                                                   amount_loss=amount_loss)
+        for i in range(2):
+            result = await self.async_obj \
+                .wait_for_deposit_confirmation_binance(symbol=base_symbol,
+                                                       expected_amount=expected_amount,
+                                                       check_interval=check_interval,
+                                                       timeout=timeout,
+                                                       amount_loss=amount_loss,
+                                                       debug=debug)
+            if result:
+                return result
+            else:
+                if second_chance:
+                    if debug:
+                        print(f"Second chance for {symbol} on Binance")
+                        print("Waiting ....")
+                    await asyncio.sleep(timeout/2)
+                else:
+                    break
+        return False
+
+        # result = await self.async_obj \
+        #     .wait_for_deposit_confirmation_binance(symbol=base_symbol,
+        #                                            expected_amount=expected_amount,
+        #                                            check_interval=check_interval,
+        #                                            timeout=timeout,
+        #                                            amount_loss=amount_loss)
+        # if not result:
+        #     if second_chance:
+        #         if debug:
+        #             print(f"Second chance for {symbol} on Binance")
+        #         await asyncio.sleep(timeout/2)
+        #         result = await self.async_obj \
+        #             .wait_for_deposit_confirmation_binance(symbol=base_symbol,
+        #                                                    expected_amount=expected_amount,
+        #                                                    check_interval=check_interval,
+        #                                                    timeout=timeout,
+        #                                                    amount_loss=amount_loss)
+        # return result
+
+    def get_available_amount_sync(self, currency):
+        return self.sync_client.fetch_budget(currency)
+
+    async def get_available_amount_async(self, currency):
+        return await self.async_obj.sync_client.fetch_budget(currency)
+

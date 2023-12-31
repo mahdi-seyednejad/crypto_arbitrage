@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from src.exchange_arbitrage_pkg.broker_utils.binance_data_fetcher import update_data_df
+from src.exchange_arbitrage_pkg.diff_df_maker_pkg.diff_df_maker_utils import update_data_df
 
 
 # Fixture for initial data

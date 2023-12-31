@@ -19,6 +19,12 @@ class ExchangeAbstractClass(ABC):
         self.budget_manager = BudgetManager(self.budget)
         self.withdrawal_factor = 0.95  # The mount of money that will be withdrawn from the exchange after deducting the gas fee
         self.price_col = None  # ToDO: Move the price column name here
+        self.transaction_fee_rate = None  # ToDO: Move the transaction fee here
+        self.maker_fee_rate = None  # ToDO: Move the maker fee here
+        self.taker_fee_rate = None  # ToDO: Move the taker fee here
+
+    def get_transaction_fee_rate(self):
+        return self.transaction_fee_rate
 
     def get_budget_sync(self, currency: str = 'USDT'):
         return self.get_budget(self.sync_client, currency)
@@ -58,5 +64,18 @@ class ExchangeAbstractClass(ABC):
                                      expected_amount,
                                      check_interval,
                                      timeout,
-                                     amount_loss):
+                                     amount_loss,
+                                     second_chance,
+                                     debug):
         pass
+
+    def get_available_amount_sync(self, currency):
+        return self.sync_client.fetch_budget(currency)
+
+    @abstractmethod
+    def get_current_price(self, symbol):
+        pass
+
+    async def get_available_amount_async(self, currency):
+        return await self.async_obj.client.fetch_budget(currency)
+
