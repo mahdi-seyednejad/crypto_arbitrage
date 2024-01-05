@@ -8,6 +8,7 @@ from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.arbitrage_machine_pk
 from src.exchange_arbitrage_pkg.exchange_arbitrage_executors.exchange_arbitrage_utils import find_best_backup_values, \
     BestSymbolStructure
 from src.exchange_arbitrage_pkg.exchange_arbitrage_executors.exchange_arbitrage_utils import get_sec_symbol_and_price
+from src.exchange_arbitrage_pkg.symbol_arbitrage_eval_pkg.symbol_eval_w_formula import SymbolEvaluatorFormula
 from src.exchange_arbitrage_pkg.symbol_arbitrage_eval_pkg.symbol_evaluator import SymbolEvaluatorArbitrage, \
     SymbolEvaluatorArbitrageAbstract
 from src.exchange_arbitrage_pkg.trade_runner_package.trade_runner_base import TradeRunner
@@ -21,17 +22,20 @@ class ArbitrageMachineMakerPunch:
     def __init__(self,
                  exchange_pair: ExchangePair,
                  col_info_obj: ColumnInfoClass,
-                 symbol_evaluator_obj: SymbolEvaluatorArbitrageAbstract,
                  trade_hy_params_obj: TradeHyperParameter,
                  db_handler: DbHandler,
                  debug: bool):
         self.exchange_pair = exchange_pair
         self.exchange_pair.set_all_budgets(trade_hy_params_obj.initial_budget)
         self.col_info_obj = col_info_obj
-        self.symbol_evaluator_obj = symbol_evaluator_obj
         self.trade_hy_params_obj = trade_hy_params_obj
         self.db_handler = db_handler
         self.debug = debug
+        self.symbol_evaluator_obj = SymbolEvaluatorFormula(column_info_obj=self.col_info_obj,
+                                                           trade_hyper_parameters=self.trade_hy_params_obj,
+                                                           exchange_pair=self.exchange_pair,
+                                                           db_handler=self.db_handler,
+                                                           debug=debug)
         self.is_good_to_trade_col = col_info_obj.symbol_eval_col_obj.is_good_to_trade_col
         self.best_sell_symbols_ex_1: List[BestSymbolStructure] = []
         self.best_sell_symbols_ex_2: List[BestSymbolStructure] = []
@@ -56,47 +60,93 @@ class ArbitrageMachineMakerPunch:
         allowed_budget = self.trade_hy_params_obj.budget_factor * available_budget
         return allowed_budget * row[self.col_info_obj.symbol_eval_col_obj.budge_factor_col]
 
-    def get_arbit_machine_seller_FIRST(self, row):
-        # The seller (the first exchange) will be the destination exchange
-        src_exchange = self.exchange_pair.get_second_exchange()
-        # (secondary_symbol, sec_symbol_price) = get_sec_symbol_and_price(self.best_sell_symbols_ex_2,
-        #                                                                 self.best_backup_rank_symbols_ex_2)
-        secondary = get_sec_symbol_and_price(self.best_sell_symbols_ex_2, self.best_backup_rank_symbols_ex_2)
-        return ArbitrageMachinePunches(name=self.exchange_pair.name_first_seller,
+    def _get_ex_pair(self):
+        return self.exchange_pair
+
+    def _create_arbit_machine_per_row(self, row, ex_pair, is_seller_first, secondary):
+        if is_seller_first:
+            name = ex_pair.name_first_seller
+            src_exchange = ex_pair.get_second_exchange()
+            dst_exchange = ex_pair.get_first_exchange()
+        else:
+            name = ex_pair.name_second_seller
+            src_exchange = ex_pair.get_first_exchange()
+            dst_exchange = ex_pair.get_second_exchange()
+
+        return ArbitrageMachinePunches(name=name,
                                        src_exchange_platform=src_exchange,
-                                       dst_exchange_platform=self.exchange_pair.get_first_exchange(),
+                                       dst_exchange_platform=dst_exchange,
                                        row=row,
                                        col_info_obj=self.col_info_obj,
-                                       ex_price_cols=self.exchange_pair.get_all_price_cols(),
+                                       ex_price_cols=ex_pair.get_all_price_cols(),
                                        budget=self.get_assigned_allowed_budget(src_exchange, row),
                                        min_acceptable_budget=self.trade_hy_params_obj.min_acceptable_budget,
                                        secondary_symbol=secondary.symbol,
                                        secondary_symbol_price=secondary.price,
                                        secondary_symbol_withdraw_fee=secondary.withdraw_fee,
-                                       operation_executor=self.exchange_pair.get_operation_executor(),
+                                       operation_executor=ex_pair.get_operation_executor(),
                                        wait_time_info=self.trade_hy_params_obj.wait_time_deposit,
                                        debug=self.debug)
 
+    def get_arbit_machine_seller_FIRST(self, row):
+        exchange_pair = self._get_ex_pair()
+        # The seller (the first exchange) will be the destination exchange
+        secondary = get_sec_symbol_and_price(self.best_sell_symbols_ex_2, self.best_backup_rank_symbols_ex_2)
+        return self._create_arbit_machine_per_row(row=row,
+                                                  ex_pair=exchange_pair,
+                                                  is_seller_first=True,
+                                                  secondary=secondary)
+
     def get_arbit_machine_seller_SECOND(self, row):
-        # The seller (the second exchange) will be the destination exchange
-        src_exchange = self.exchange_pair.get_first_exchange()
-        # (secondary_symbol, sec_symbol_price) = get_sec_symbol_and_price(self.best_sell_symbols_ex_1,
-        #                                                                 self.best_backup_rank_symbols_ex_1)
-        secondary = get_sec_symbol_and_price(self.best_sell_symbols_ex_1, self.best_backup_rank_symbols_ex_1)
-        return ArbitrageMachinePunches(name=self.exchange_pair.name_second_seller,
-                                       src_exchange_platform=self.exchange_pair.get_first_exchange(),
-                                       dst_exchange_platform=self.exchange_pair.get_second_exchange(),
-                                       row=row,
-                                       col_info_obj=self.col_info_obj,
-                                       budget=self.get_assigned_allowed_budget(src_exchange, row),
-                                       min_acceptable_budget=self.trade_hy_params_obj.min_acceptable_budget,
-                                       ex_price_cols=self.exchange_pair.get_all_price_cols(),
-                                       secondary_symbol=secondary.symbol,
-                                       secondary_symbol_price=secondary.price,
-                                       secondary_symbol_withdraw_fee=secondary.withdraw_fee,
-                                       operation_executor=self.exchange_pair.get_operation_executor(),
-                                       wait_time_info=self.trade_hy_params_obj.wait_time_deposit,
-                                       debug=self.debug)
+        exchange_pair = self._get_ex_pair()
+        secondary = get_sec_symbol_and_price(self.best_sell_symbols_ex_2, self.best_backup_rank_symbols_ex_2)
+        return self._create_arbit_machine_per_row(row=row,
+                                                  ex_pair=exchange_pair,
+                                                  is_seller_first=False,
+                                                  secondary=secondary)
+    # def get_arbit_machine_seller_FIRST(self, row):
+
+    # src_exchange = self.exchange_pair.get_second_exchange()
+        # # (secondary_symbol, sec_symbol_price) = get_sec_symbol_and_price(self.best_sell_symbols_ex_2,
+        # #                                                                 self.best_backup_rank_symbols_ex_2)
+        # secondary = get_sec_symbol_and_price(self.best_sell_symbols_ex_2, self.best_backup_rank_symbols_ex_2)
+        # return ArbitrageMachinePunches(name=self.exchange_pair.name_first_seller,
+        #                                src_exchange_platform=src_exchange,
+        #                                dst_exchange_platform=self.exchange_pair.get_first_exchange(),
+        #                                row=row,
+        #                                col_info_obj=self.col_info_obj,
+        #                                ex_price_cols=self.exchange_pair.get_all_price_cols(),
+        #                                budget=self.get_assigned_allowed_budget(src_exchange, row),
+        #                                min_acceptable_budget=self.trade_hy_params_obj.min_acceptable_budget,
+        #                                secondary_symbol=secondary.symbol,
+        #                                secondary_symbol_price=secondary.price,
+        #                                secondary_symbol_withdraw_fee=secondary.withdraw_fee,
+        #                                operation_executor=self.exchange_pair.get_operation_executor(),
+        #                                wait_time_info=self.trade_hy_params_obj.wait_time_deposit,
+        #                                debug=self.debug)
+
+    # def get_arbit_machine_seller_SECOND(self, row):
+    #     #ToDo:>>>> Here, pick the next EX_pair in the expair queue.
+    #
+    #     # The seller (the second exchange) will be the destination exchange
+    #     src_exchange = self.exchange_pair.get_first_exchange()
+    #     # (secondary_symbol, sec_symbol_price) = get_sec_symbol_and_price(self.best_sell_symbols_ex_1,
+    #     #                                                                 self.best_backup_rank_symbols_ex_1)
+    #     secondary = get_sec_symbol_and_price(self.best_sell_symbols_ex_1, self.best_backup_rank_symbols_ex_1)
+    #     return ArbitrageMachinePunches(name=self.exchange_pair.name_second_seller,
+    #                                    src_exchange_platform=self.exchange_pair.get_first_exchange(),
+    #                                    dst_exchange_platform=self.exchange_pair.get_second_exchange(),
+    #                                    row=row,
+    #                                    col_info_obj=self.col_info_obj,
+    #                                    budget=self.get_assigned_allowed_budget(src_exchange, row),
+    #                                    min_acceptable_budget=self.trade_hy_params_obj.min_acceptable_budget,
+    #                                    ex_price_cols=self.exchange_pair.get_all_price_cols(),
+    #                                    secondary_symbol=secondary.symbol,
+    #                                    secondary_symbol_price=secondary.price,
+    #                                    secondary_symbol_withdraw_fee=secondary.withdraw_fee,
+    #                                    operation_executor=self.exchange_pair.get_operation_executor(),
+    #                                    wait_time_info=self.trade_hy_params_obj.wait_time_deposit,
+    #                                    debug=self.debug)
 
     def decide_arbitrage_machine(self, row):
         if row[self.col_info_obj.price_diff_col] > 0:  # Binance is more expensive => Binance is the seller
@@ -109,7 +159,7 @@ class ArbitrageMachineMakerPunch:
             return None
 
     def _create_arbitrage_machines(self, df_in):
-        # ToDo: This should be the place to ge the scondary symbol and its price
+        # ToDo: This should be the place to ge the secondary symbol and its price
         df = df_in.copy()
         arbitrage_machines = df.apply(self.decide_arbitrage_machine, axis=1)
         return arbitrage_machines[arbitrage_machines.notnull()].tolist()
@@ -159,27 +209,6 @@ class ArbitrageMachineMakerPunch:
 
         self._update_best_sell_symbols_info_(df_selected)
         return self._create_arbitrage_machines(df_selected)
-
-    # def _extract_best_secondary(self, df_in, rank):
-    #     # Adjust rank to be zero-indexed for DataFrame indexing
-    #     rank_index = rank - 1
-    #
-    #     # Divide the DataFrame into positive and negative groups
-    #     df_positive = df_in[df_in[self.col_info_obj.price_diff_col] > 0]
-    #     df_negative = df_in[df_in[self.col_info_obj.price_diff_col] < 0]
-    #
-    #     # Find the best symbol for each group, based on the specified rank
-    #     best_positive_values = (df_positive.iloc[rank_index][self.col_info_obj.symbol_col],
-    #                             df_positive.iloc[rank_index][self.exchange_pair.first_exchange.price_col],
-    #                             ) \
-    #         if len(df_positive) > rank_index else (None, None)
-    #
-    #     best_negative_values = (df_negative.iloc[rank_index][self.col_info_obj.symbol_col],
-    #                             df_negative.iloc[rank_index][self.exchange_pair.second_exchange.price_col]) \
-    #         if len(df_negative) > rank_index else (None, None)
-    #
-    #     # Each of these 2 outputs is a tuple of (symbol, price)
-    #     return best_positive_values, best_negative_values
 
     def _extract_best_secondary(self, df_in, rank):
         # Adjust rank to be zero-indexed for DataFrame indexing

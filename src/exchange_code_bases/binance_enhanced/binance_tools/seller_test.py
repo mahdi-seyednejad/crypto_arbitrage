@@ -17,8 +17,6 @@ operation_executor = OperationExecutor(first_exchange=binance_exchange,
 def seller_obj_smoke_test():
     seller = Seller(operation_executor=operation_executor,
                     debug=True)
-    # symbol = "ACHUSDT"
-    # quantity = 46
     symbol = "FORTUSDT"
     amount = 56.66218455999999
     order_res = asyncio.run(seller.sell_crypto(exchange_platform=binance_exchange,

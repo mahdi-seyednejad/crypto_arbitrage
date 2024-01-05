@@ -12,6 +12,7 @@ class ExchangeAbstractClass(ABC):
                  api_auth_obj: APIAuthClass):
         self.name = name
         self.api_auth_obj = api_auth_obj
+        self.public_client = None
         self.sync_client = None
         self.async_obj = None
         self.async_client = None

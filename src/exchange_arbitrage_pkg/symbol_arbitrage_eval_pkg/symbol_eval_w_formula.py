@@ -74,6 +74,7 @@ class SymbolEvaluatorFormula(SymbolEvaluatorArbitrageAbstract):
         self.db_handler.insert_order_book_info_df(df)
 
     def score_symbol(self, row):
+        #ToDo: >>>> You can pass a new ex_pair for each row
         symbol = row[self.col_info.symbol_col]
         new_order_books = self.get_order_books(symbol, self.exchange_pair)
         self.all_symbols_order_book_df = pd.concat([self.all_symbols_order_book_df, new_order_books], ignore_index=True)

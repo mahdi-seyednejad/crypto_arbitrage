@@ -70,7 +70,7 @@ def extract_networks_binance(client):
     except BinanceAPIException as e:
         # Handle potential exceptions
         print(f"Binance API Exception occurred: {e}")
-        return None, None
+        return None, None, None
     return df, unique_networks, coin_network_mapping
 
 

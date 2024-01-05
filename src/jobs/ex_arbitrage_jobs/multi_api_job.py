@@ -1,6 +1,8 @@
 ##########   Force to use IPv4   #########
 import socket
 
+from src.pipelines.exchange_arbitrage_pipeline.multi_api_pipeline import MultiAPIPipeline
+
 # Store the original getaddrinfo to restore later if needed
 original_getaddrinfo = socket.getaddrinfo
 
@@ -23,6 +25,7 @@ from src.pipelines.exchange_arbitrage_pipeline.simple_pipeline import SimplePipe
 
 def main_job():
     DEBUG = True
+    Sample_Size = None  # Just for testing
 
     waite_time_obj = WaitTimeDeposit(check_interval=10,  # Get this to the punches
                                      timeout=800,
@@ -52,14 +55,13 @@ def main_job():
 
     my_table_names = TableNames()
 
-    pipeline = SimplePipeline(trade_hyper_parameters=tr_hype_param,
-                              table_names=my_table_names,
-                              debug=DEBUG)
+    pipeline = MultiAPIPipeline(trade_hyper_parameters=tr_hype_param,
+                                table_names=my_table_names,
+                                debug=DEBUG)
 
     loop = asyncio.get_event_loop()
     loop.set_debug(DEBUG)
     asyncio.run(pipeline.run_pipeline())
-
 
 
 if __name__ == '__main__':

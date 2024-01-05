@@ -35,19 +35,17 @@ from src.exchange_arbitrage_pkg.utils.hyper_parameters.trade_hyper_parameter_cla
 
 class SimplePipeline:
     def __init__(self,
-                 sample_size: Optional[int],
                  trade_hyper_parameters: TradeHyperParameter,
-                 storage_dir: Optional[str],
                  table_names: TableNames,
                  debug: bool):
         self.debug = debug
-        self.sample_size = sample_size  # Just for testing
         self.trade_hyper_parameters = trade_hyper_parameters
-        self.storage_dir = storage_dir
-        self.binance_exchange = BinanceExchange(BinanceAPIKeysHFT01())
-        self.coinbase_exchange = AdvanceTradeExchange(CoinbaseAPIKeys())
-        self.exchange_pair = ExchangePair(first_exchange=self.binance_exchange,
-                                          second_exchange=self.coinbase_exchange)
+        self.sample_size = self.trade_hyper_parameters.diff_maker_config.sample_size  # Just for testing
+        self.storage_dir = self.trade_hyper_parameters.diff_maker_config.storage_dir
+        self.sleep_time = self.trade_hyper_parameters.diff_maker_config.sleep_time
+
+        self.exchange_pair = ExchangePair(first_exchange=BinanceExchange(BinanceAPIKeysHFT01()),
+                                          second_exchange=AdvanceTradeExchange(CoinbaseAPIKeys()))
         self.price_cols = self.exchange_pair.get_all_price_cols()
         self.column_info_obj = ColumnInfoClass()
         self.db_handler = DbHandler(
@@ -55,71 +53,35 @@ class SimplePipeline:
             date_as_index=False,
             table_names=table_names,
             debug=True)
-        self.symbol_evaluator_obj = SymbolEvaluatorFormula(column_info_obj=self.column_info_obj,
-                                                           trade_hyper_parameters=self.trade_hyper_parameters,
-                                                           exchange_pair=self.exchange_pair,
-                                                           db_handler=self.db_handler,
-                                                           debug=self.debug)
 
-    def get_diff_df_maker_obj(self, diff_df_maker_class: Type[PriceDiffExtractor]):
-        return diff_df_maker_class(first_exchange_obj=self.binance_exchange,
-                                   second_exchange_obj=self.coinbase_exchange,
-                                   col_info=self.column_info_obj,
-                                   diff_db_handler=self.db_handler,
-                                   experiment_sample_size=self.sample_size,
-                                   debug=self.debug)
+    def _get_diff_df_maker_obj(self):
+        return PriceDiffExtractor(exchange_pair=self.exchange_pair,
+                                  col_info=self.column_info_obj,
+                                  diff_db_handler=self.db_handler,
+                                  experiment_sample_size=self.sample_size,
+                                  debug=self.debug)
 
-    async def run_arbitrage_on_diff_df(self, exchange_arbitrage_obj: PriceDiffExtractor,
-                                       arbitrage_function):
-        await exchange_arbitrage_obj.run(
-            run_number=self.trade_hyper_parameters.run_number,
-            apply_function=arbitrage_function,
-            storage_dir=None
-        )
+    def _get_arbitrage_maker_obj(self):
+        return ArbitrageMachineMakerPunch(exchange_pair=self.exchange_pair,
+                                          col_info_obj=self.column_info_obj,
+                                          trade_hy_params_obj=self.trade_hyper_parameters,
+                                          db_handler=self.db_handler,
+                                          debug=self.debug)
 
-    async def run(self):
-        diff_df_maker_obj = self.get_diff_df_maker_obj(diff_df_maker_class=PriceDiffExtractor)
-        executor_object = ArbitrageMachineMakerPunch(exchange_pair=self.exchange_pair,
-                                                     col_info_obj=self.column_info_obj,
-                                                     symbol_evaluator_obj=self.symbol_evaluator_obj,
-                                                     trade_hy_params_obj=self.trade_hyper_parameters,
-                                                     db_handler=self.db_handler,
-                                                     debug=self.debug)
-        await self.run_arbitrage_on_diff_df(diff_df_maker_obj,
-                                            executor_object.create_and_run_arbit_machines)
+    async def run_pipeline(self):
+        diff_df_maker_obj = self._get_diff_df_maker_obj()
+        arbitrage_maker_obj = self._get_arbitrage_maker_obj()
+        counter = 0
+        while True:
+            diff_df = await diff_df_maker_obj.obtain_and_process_diff_df(counter=counter,
+                                                                         sleep_time=self.sleep_time,
+                                                                         storage_dir=self.storage_dir)
+            await arbitrage_maker_obj.create_and_run_arbit_machines(diff_df)
+            counter += 1
+            if self.trade_hyper_parameters.diff_maker_config.run_number is not None:
+                if counter >= self.trade_hyper_parameters.diff_maker_config.run_number:
+                    break
 
-
-if __name__ == '__main__':
-    DEBUG = True
-    Sample_Size = None  # Just for testing
-
-    tr_hype_param = TradeHyperParameter(trade_bucket_size=20,
-                                        order_book_fetch_level=100,
-                                        acceptable_slippage=0.5,
-                                        price_range_percent=0.5,
-                                        initial_budget=None,
-                                        outlier_threshold=2.1,
-                                        fetch_period=30,
-                                        run_number=10,
-                                        num_of_top_symbols=2,
-                                        budget_factor=0.5,
-                                        acceptable_amount_diff_percent=0.5,
-                                        min_acceptable_budget=10,
-                                        secondary_symbol_rank=2,
-                                        num_rank_hard_cut_off=4,
-                                        wait_time_deposit=WaitTimeDeposit(check_interval=10, # Get this to the punches
-                                                                          timeout=800,
-                                                                          amount_loss=0.05,
-                                                                          second_chance=True))
-
-    my_table_names = TableNames()
-
-    pipeline = SimplePipeline(trade_hyper_parameters=tr_hype_param,
-                              sample_size=Sample_Size,
-                              storage_dir=None,
-                              table_names=my_table_names,
-                              debug=DEBUG)
-    asyncio.run(pipeline.run())
 
 # ToDO: Idea: Predict the price diff based on exchanges 1,2, to apply on echange 1,3
 # ToDo: make a list of exchange machines and their status: running, blocked, waiting, etc.

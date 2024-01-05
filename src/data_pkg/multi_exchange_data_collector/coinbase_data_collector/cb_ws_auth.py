@@ -80,18 +80,6 @@ message = {
   "timestamp": str(now)
 }
 
-# async def main():
-#     ws = await websockets.connect(url_websocket)
-#     await ws.send(json.dumps(message))
-#     print(json.dumps(message))
-#     async def receive_data():
-#         while True:
-#             response = await ws.recv()
-#             data = json.loads(response)
-#             print(data)
-#
-#     while True:
-#         await receive_data()
 
 async def receive_data(ws):
     while True:

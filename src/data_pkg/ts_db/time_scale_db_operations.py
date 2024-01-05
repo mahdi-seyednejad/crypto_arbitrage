@@ -36,15 +36,6 @@ class TimeScaleClass:
                                port=5432)
         self.cur = self.conn.cursor()
 
-    # def _check_or_create_table(self, df, table_name, time_column, symbol_col, debug):
-    #     col_types = get_col_types_sql(df)
-    #     columns = ', '.join([f"{col.replace(' ', '_')} {col_types[col]}" for col in df.columns])
-    #     create_table_query = f'CREATE TABLE IF NOT EXISTS {table_name} ({columns}, PRIMARY KEY ({time_column}, {symbol_col}))'
-    #     if debug:
-    #         print(create_table_query)
-    #     self.cur.execute(create_table_query)
-    #     self.conn.commit()
-
     def _check_or_create_table(self, df, table_name, time_column, primary_keys=None, debug=False):
         col_types = get_col_types_sql(df)
         columns = ', '.join([f"{col.replace(' ', '_')} {col_types[col]}" for col in df.columns])
@@ -63,20 +54,6 @@ class TimeScaleClass:
             print(create_table_query)
         self.cur.execute(create_table_query)
         self.conn.commit()
-
-    # def _insert_data(self, df, table_name, time_column, symbol_col, debug):
-    #     # Convert numpy.int32 columns to Python int
-    #     for col in df.select_dtypes(include=['int32']).columns:
-    #         df[col] = df[col].astype(int)
-    #
-    #     column_list = [col.replace(' ', '_') for col in df.columns]
-    #     query = f"INSERT INTO {table_name} ({', '.join(column_list)}) VALUES ({'%s, ' * (len(column_list) - 1)}%s) ON " \
-    #             f"CONFLICT ({time_column}, {symbol_col}) DO NOTHING"
-    #     execute_batch(self.cur,
-    #                   query,
-    #                   [tuple(x) for x in df.to_records(index=False)],
-    #                   page_size=1000)
-    #     self.conn.commit()
 
     def _insert_data(self, df, table_name, time_column, primary_keys=None, debug=False):
         # Convert numpy.int32 columns to Python int
@@ -103,7 +80,7 @@ class TimeScaleClass:
         if debug:
             print(query)
 
-    def insert_df_to_tsdb(self, df_in, table_name, time_column, symbol_col, date_as_index, debug,
+    def insert_df_to_tsdb(self, df_in, table_name, time_column, date_as_index, debug,
                           primary_keys=None, need_dt_conversion=True):
         # Pre-processing
         df = prepare_dataframe(df_in, time_column, date_as_index, need_dt_conversion)

@@ -21,6 +21,21 @@ class WaitTimeDeposit:
         self.second_chance = second_chance
 
 
+# ToDo: Put the diff df maker parameters here.
+# class DiffDataFrameParams:
+#
+class DiffMakerRunConfig:
+    def __init__(self,
+                 sleep_time: int = 2,
+                 run_number: Optional[int] = 10,
+                 sample_size: Optional[int] = 50,
+                 storage_dir: Optional[str] = None):
+        self.sleep_time = sleep_time
+        self.run_number = run_number
+        self.sample_size = sample_size
+        self.storage_dir = storage_dir
+
+
 class TradeHyperParameter:
     def __init__(self,
                  trade_bucket_size: int,  # Number of the top of the diff df to be calculated for trading.
@@ -29,15 +44,16 @@ class TradeHyperParameter:
                  price_range_percent: float = 0.5,
                  initial_budget: Optional[float] = 1000.0,
                  outlier_threshold: float = 2.5,
-                 fetch_period: int = 2, # in seconds: How long sleep before fetching prices and creating new diff df
-                 run_number: Optional[int] = 10, # How many times to run the diff df generator loop/ None means forever
-                 num_of_top_symbols=1, # Number of top evaluated symbols to be able to run their exchange machine
-                 budget_factor=0.5, # How much of the budget to be used for each exchange machine
-                 acceptable_amount_diff_percent=0.5, # How much of the budget to be used for each exchange machine
-                 min_acceptable_budget=10, # Minimum budget on an exchange to run a cross exchange machine
-                 secondary_symbol_rank=2, # The rank of the secondary symbol in the top symbols list.
-                 num_rank_hard_cut_off = None,
+                 fetch_period: int = 2,  # in seconds: How long sleep before fetching prices and creating new diff df
+                 # run_number: Optional[int] = 10,  # How many times to run the diff df generator loop/ None means forever
+                 num_of_top_symbols=1,  # Number of top evaluated symbols to be able to run their exchange machine
+                 budget_factor=0.5,  # How much of the budget to be used for each exchange machine
+                 acceptable_amount_diff_percent=0.5,  # How much of the budget to be used for each exchange machine
+                 min_acceptable_budget=10,  # Minimum budget on an exchange to run a cross exchange machine
+                 secondary_symbol_rank=2,  # The rank of the secondary symbol in the top symbols list.
+                 num_rank_hard_cut_off=None,
                  wait_time_deposit: Optional[WaitTimeDeposit] = WaitTimeDeposit(),
+                 diff_maker_config: DiffMakerRunConfig = DiffMakerRunConfig(),
                  ):
         """
         :param trade_bucket_size: Number of the top of the diff df to be calculated for trading.
@@ -79,7 +95,7 @@ class TradeHyperParameter:
         self.initial_budget = initial_budget
         self.outlier_threshold = outlier_threshold
         self.fetch_period = fetch_period
-        self.run_number = run_number
+        # self.run_number = run_number
         self.num_of_top_symbols = num_of_top_symbols
         self.budget_factor = budget_factor
         self.acceptable_amount_diff_percent = acceptable_amount_diff_percent
@@ -87,4 +103,4 @@ class TradeHyperParameter:
         self.secondary_symbol_rank = secondary_symbol_rank
         self.num_rank_hard_cut_off = num_rank_hard_cut_off
         self.wait_time_deposit = wait_time_deposit
-
+        self.diff_maker_config = diff_maker_config

@@ -97,25 +97,6 @@ class BinanceExchange(ExchangeAbstractClass):
                     break
         return False
 
-        # result = await self.async_obj \
-        #     .wait_for_deposit_confirmation_binance(symbol=base_symbol,
-        #                                            expected_amount=expected_amount,
-        #                                            check_interval=check_interval,
-        #                                            timeout=timeout,
-        #                                            amount_loss=amount_loss)
-        # if not result:
-        #     if second_chance:
-        #         if debug:
-        #             print(f"Second chance for {symbol} on Binance")
-        #         await asyncio.sleep(timeout/2)
-        #         result = await self.async_obj \
-        #             .wait_for_deposit_confirmation_binance(symbol=base_symbol,
-        #                                                    expected_amount=expected_amount,
-        #                                                    check_interval=check_interval,
-        #                                                    timeout=timeout,
-        #                                                    amount_loss=amount_loss)
-        # return result
-
     def get_available_amount_sync(self, currency):
         return self.sync_client.fetch_budget(currency)
 

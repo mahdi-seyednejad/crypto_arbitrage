@@ -7,7 +7,8 @@ import pandas as pd
 
 from src.data_pkg.ts_db.table_names_ds import TableNames
 from src.data_pkg.ts_db.ts_db_handler import DbHandler
-from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import BinanceAPIKeys, CoinbaseProAPIKeys
+from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import BinanceAPIKeys, CoinbaseProAPIKeys, \
+    BinanceAPIKeysHFT02
 from src.exchange_arbitrage_pkg.diff_df_maker_pkg.diff_df_maker_utils import update_data_df
 from src.exchange_arbitrage_pkg.broker_utils.coinbase_utils.coinbase_get_prices import get_latest_prices_coinbase_at
 from src.exchange_arbitrage_pkg.utils.python_utils.df_utils import convert_column_types
@@ -15,20 +16,25 @@ from src.exchange_code_bases.exchange_class.advance_trade_exchange import Advanc
 from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
 from src.exchange_arbitrage_pkg.utils.information_extractor import calculate_diff_and_sort, info_extractor_by_df
 from src.exchange_code_bases.exchange_class.binance_exchange import BinanceExchange
+from src.exchange_code_bases.exchange_class.exchange_pair_class import ExchangePair
 
 
 class PriceDiffExtractor:
     def __init__(self,
-                 first_exchange_obj,  # Binance in our first experiment
-                 second_exchange_obj,  # Coinbase in our first experiment
+                 # first_exchange_obj,  # Binance in our first experiment
+                 #second_exchange_obj,  # Coinbase in our first experiment
+                  exchange_pair: ExchangePair,
                  col_info: ColumnInfoClass,
                  diff_db_handler: DbHandler,
                  experiment_sample_size: Optional[int] = None,
                  debug=True):
-        self.first_exchange = first_exchange_obj # price diff = first - second
-        self.second_exchange = second_exchange_obj
+        # self.first_exchange = first_exchange_obj # price diff = first - second
+        # self.second_exchange = second_exchange_obj
+        self.first_exchange = exchange_pair.get_first_exchange()
+        self.second_exchange = exchange_pair.get_second_exchange()
         self.binance_client_async = None
-        self.coinbase_client_sync = second_exchange_obj.public_client
+        self.coinbase_client_sync = exchange_pair.get_second_client_for_diff_df()
+        # self.coinbase_client_sync = second_exchange_obj.public_client
         # self.coinbase_client_sync = second_exchange_obj.sync_client
         self.data = None
         self.debug = debug
@@ -163,7 +169,8 @@ class PriceDiffExtractor:
         self.print_debug(new_data_w_src_dst)
         return self.data
 
-    async def _obtain_and_process_diff_df(self, apply_function, storage_dir, counter, sleep_time):
+    #ToDo: The following two functions shouild conceptually be in the pipeline.
+    async def obtain_and_process_diff_df(self, counter, sleep_time, storage_dir=None, apply_function=None):
         try:
             result_df = await self.create_differential_df()
             if apply_function is not None:
@@ -171,6 +178,7 @@ class PriceDiffExtractor:
             if storage_dir is not None:
                 result_df.to_csv(f"{storage_dir}/data_{counter}.csv")
             time.sleep(sleep_time)
+            return result_df
         except Exception as e:
             print(e)
             time.sleep(sleep_time)
@@ -180,35 +188,14 @@ class PriceDiffExtractor:
         sleep_time = 2
         counter = 0
         while True:
-            await self._obtain_and_process_diff_df(apply_function, storage_dir, counter, sleep_time)
+            result_df = await self.obtain_and_process_diff_df(counter=counter,
+                                                              sleep_time=sleep_time,
+                                                              storage_dir=storage_dir,
+                                                              apply_function=apply_function)
             counter += 1
             if run_number is not None:
                 if counter >= run_number:
                     break
-
-
-        # # Run the arbitrage detection for a specified number of times
-        # if run_number is None:
-        #     while True:
-        #         self._obtain_and_process_diff_df(apply_function, storage_dir, counter, sleep_time)
-        #         # result_df = await self.create_differential_df()
-        #         # if apply_function is not None:
-        #         #     await apply_function(result_df)
-        #         # if storage_dir is not None:
-        #         #     result_df.to_csv(f"{storage_dir}/data_{counter}.csv")
-        #         # time.sleep(sleep_time)
-        #         counter += 1
-        #         if
-        # else:
-        #     for i in range(run_number):
-        #         self._obtain_and_process_diff_df(apply_function, storage_dir, counter, sleep_time)
-        #         # result_df = await self.create_differential_df()
-        #         # if apply_function is not None:
-        #         #     await apply_function(result_df)
-        #         # if storage_dir is not None:
-        #         #     result_df.to_csv(f"{storage_dir}/data_{counter}.csv")
-        #         # time.sleep(sleep_time)
-        #     counter += 1
 
 
 def print_for_testing(df):
@@ -223,7 +210,8 @@ if __name__ == '__main__':
     run_number = 4
 
     col_obj = ColumnInfoClass()
-    binance_exchange = BinanceExchange(BinanceAPIKeys())
+    # binance_exchange = BinanceExchange(BinanceAPIKeys())
+    binance_exchange = BinanceExchange(BinanceAPIKeysHFT02())
     coinbase_exchange = AdvanceTradeExchange(CoinbaseProAPIKeys())
 
     db_handler = DbHandler(
@@ -232,8 +220,12 @@ if __name__ == '__main__':
         table_names=TableNames(),
         debug=True)
 
-    arb_bot = PriceDiffExtractor(first_exchange_obj=binance_exchange,
-                                 second_exchange_obj=coinbase_exchange,
+    exchange_pair = ExchangePair(first_exchange=binance_exchange,
+                                 second_exchange=coinbase_exchange)
+
+    arb_bot = PriceDiffExtractor(#first_exchange_obj=binance_exchange,
+                                 #second_exchange_obj=coinbase_exchange,
+                                 exchange_pair=exchange_pair,
                                  experiment_sample_size=sample_size,
                                  col_info=col_obj,
                                  diff_db_handler=db_handler,

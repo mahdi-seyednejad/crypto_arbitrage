@@ -36,9 +36,11 @@ class BinanceAmountAdjusterAsync:
 
         return adjusted_quantity
 
-    async def search_dict(self, lst, key, value):
-        # Assuming you have implemented this function to search in the filters list
-        pass
+    async def search_dict(self, list_of_dicts, key, value):
+        for d in list_of_dicts:
+            if d[key] == value:
+                return d
+        return {}
 
     # async def adjust_sell_amount(self, symbol, quantity):
     #     symb_info = await self.client.get_symbol_info(symbol)
@@ -131,11 +133,6 @@ class BinanceAmountAdjusterAsync:
 
         return amount_lot_sized
 
-    async def search_dict(self, list_of_dicts, key, value):
-        for d in list_of_dicts:
-            if d[key] == value:
-                return d
-        return {}
 
     async def get_min_notional_value(self, symb_info):
         res_dict = await self.search_dict(symb_info["filters"], "filterType", "MIN_NOTIONAL")

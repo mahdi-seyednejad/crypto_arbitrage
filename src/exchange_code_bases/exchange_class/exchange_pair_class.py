@@ -6,7 +6,10 @@ from src.exchange_code_bases.exchange_class.base_exchange_class import ExchangeA
 
 
 class ExchangePair:
-    def __init__(self, first_exchange: ExchangeAbstractClass, second_exchange: ExchangeAbstractClass, debug=False):
+    def __init__(self,
+                 first_exchange: ExchangeAbstractClass,
+                 second_exchange: ExchangeAbstractClass,
+                 debug=False):
         self.first_exchange = first_exchange
         self.second_exchange = second_exchange
         self.name_first_seller = second_exchange.name.value + "_to_" + first_exchange.name.value
@@ -51,14 +54,13 @@ class ExchangePair:
     def get_ex_price_col(self, exchange_name: Union[ExchangeNames, str]) -> Optional[str]:
         # Convert exchange_name to string if it is an enum member
         exchange_name_str = exchange_name.value if isinstance(exchange_name, ExchangeNames) else exchange_name
-
         if self.first_exchange.name.value == exchange_name_str:
             return self.first_exchange.price_col
         elif self.second_exchange.name.value == exchange_name_str:
             return self.second_exchange.price_col
-
         return None
 
+    #ToDo: Put a generatior here to go for the next one each time it is being called
     def get_first_exchange(self):
         return self.first_exchange
 
@@ -85,3 +87,6 @@ class ExchangePair:
 
     def get_all_symbol_info_ex_pair(self):
         return self.first_exchange.sync_client.get_all_symbol_info()
+
+    def get_second_client_for_diff_df(self):
+        return self.second_exchange.public_client

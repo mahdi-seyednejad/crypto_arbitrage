@@ -21,37 +21,50 @@ class DbHandler:
         self.symbol_col = symbol_col
         self.debug = debug
 
-    def insert_stream_diff_data_df(self, df):
+    def _insert_a_df_to_db(self, df, table_name):
         self.ts_obj.insert_df_to_tsdb(df_in=df,
-                                      table_name=self.stream_diff_table,
+                                      table_name=table_name,
                                       time_column=self.time_column,
                                       date_as_index=self.date_as_index,
-                                      symbol_col=self.symbol_col,
+                                      primary_keys=[self.symbol_col],
                                       debug=self.debug)
+
+    def insert_stream_diff_data_df(self, df):
+        self._insert_a_df_to_db(df, self.stream_diff_table)
+        # self.ts_obj.insert_df_to_tsdb(df_in=df,
+        #                               table_name=self.stream_diff_table,
+        #                               time_column=self.time_column,
+        #                               date_as_index=self.date_as_index,
+        #                               symbol_col=self.symbol_col,
+        #                               debug=self.debug)
 
     def insert_agg_diff_data_df(self, df):
-        self.ts_obj.insert_df_to_tsdb(df_in=df,
-                                      table_name=self.agg_diff_table,
-                                      time_column=self.time_column,
-                                      date_as_index=self.date_as_index,
-                                      symbol_col=self.symbol_col,
-                                      debug=self.debug)
+        self._insert_a_df_to_db(df, self.agg_diff_table)
+        # self.ts_obj.insert_df_to_tsdb(df_in=df,
+        #                               table_name=self.agg_diff_table,
+        #                               time_column=self.time_column,
+        #                               date_as_index=self.date_as_index,
+        #                               symbol_col=self.symbol_col,
+        #                               debug=self.debug)
 
     def insert_evaluated_symbols(self, df):
-        self.ts_obj.insert_df_to_tsdb(df_in=df,
-                                      table_name=self.evaluated_symbols_table,
-                                      time_column=self.time_column,
-                                      date_as_index=self.date_as_index,
-                                      symbol_col=self.symbol_col,
-                                      debug=self.debug)
+        self._insert_a_df_to_db(df, self.evaluated_symbols_table)
+        # self.ts_obj.insert_df_to_tsdb(df_in=df,
+        #                               table_name=self.evaluated_symbols_table,
+        #                               time_column=self.time_column,
+        #                               date_as_index=self.date_as_index,
+        #                               symbol_col=self.symbol_col,
+        #                               debug=self.debug)
 
     def insert_order_book_info_df(self, df):
-        self.ts_obj.insert_df_to_tsdb(df_in=df,
-                                      table_name=self.order_book_table,
-                                      time_column=self.time_column,
-                                      date_as_index=self.date_as_index,
-                                      symbol_col=self.symbol_col,
-                                      debug=self.debug)
+        self._insert_a_df_to_db(df, self.order_book_table)
+
+        # self.ts_obj.insert_df_to_tsdb(df_in=df,
+        #                               table_name=self.order_book_table,
+        #                               time_column=self.time_column,
+        #                               date_as_index=self.date_as_index,
+        #                               symbol_col=self.symbol_col,
+        #                               debug=self.debug)
 
     # def insert_single_row(self, row):
     #     self.ts_obj.insert_single_row_tsdb(row,
