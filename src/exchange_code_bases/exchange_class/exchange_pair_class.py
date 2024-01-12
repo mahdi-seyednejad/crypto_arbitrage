@@ -89,4 +89,4 @@ class ExchangePair:
         return self.first_exchange.sync_client.get_all_symbol_info()
 
     def get_second_client_for_diff_df(self):
-        return self.second_exchange.public_client
+        return self.second_exchange.sync_client

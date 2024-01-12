@@ -1,6 +1,5 @@
 import asyncio
 
-import cbpro
 import pandas as pd
 
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
@@ -20,7 +19,6 @@ class AdvanceTradeExchange(ExchangeAbstractClass):
         super().__init__(ExchangeNames.Coinbase, api_auth_obj)
         self.vol_col_key = "coinbase_volume_col"
         self.budget = None
-        self.public_client = cbpro.PublicClient()
         self.sync_client = CbAdvanceTradeClient(api_auth_obj)
         self.async_client = None
         self.async_obj = None
@@ -63,16 +61,16 @@ class AdvanceTradeExchange(ExchangeAbstractClass):
 
     def get_current_price(self, symbol):
         symbol = convert__symbol_bi_to_cb(symbol)
-        return self.public_client.get_product_ticker(symbol)['price']
+        return float(self.sync_client.get_product_ticker(symbol)['price'])
 
-    async def get_coinbase_symbol_details(self, client, symbol):
-        df = await client.fetch_account_info()
-        if df is not None:
-            buy_precision = df['base_increment']
-            min_buy_amount = df['base_min_size']
-            min_notional = df['min_market_funds']
-            return buy_precision, min_buy_amount, min_notional
-        return None, None, None
+    # async def get_coinbase_symbol_details(self, client, symbol):
+    #     df = await client.fetch_account_info()
+    #     if df is not None:
+    #         buy_precision = df['base_increment']
+    #         min_buy_amount = df['base_min_size']
+    #         min_notional = df['min_market_funds']
+    #         return buy_precision, min_buy_amount, min_notional
+    #     return None, None, None
 
     async def wait_til_receive_Async(self,
                                      symbol,
@@ -102,21 +100,11 @@ class AdvanceTradeExchange(ExchangeAbstractClass):
                 else:
                     break
         return False
-        # result = await self.async_client \
-        #     .wait_for_deposit_confirmation(symbol=base_symbol,
-        #                                    expected_amount=expected_amount,
-        #                                    check_interval=check_interval,
-        #                                    timeout=timeout,
-        #                                    amount_loss=amount_loss)
-        # if not result:
-        #     if second_chance:
-        #         if debug:
-        #             print(f"Second chance for {symbol} on Coinbase advance trade")
-        #         await asyncio.sleep(timeout/2)
-        #         result = await self.async_client \
-        #             .wait_for_deposit_confirmation(symbol=base_symbol,
-        #                                            expected_amount=expected_amount,
-        #                                            check_interval=check_interval,
-        #                                            timeout=timeout,
-        #                                            amount_loss=amount_loss)
-        # return result
+
+    def get_latest_prices_sync(self, sample_size=None):
+        return self.sync_client.get_prices_as_df(price_col=self.price_col,
+                                                 limit=sample_size)
+
+    async def get_latest_prices_async(self, sample_size=None):
+        return await self.async_client.get_prices_as_df(price_col=self.price_col,
+                                                        limit=sample_size)

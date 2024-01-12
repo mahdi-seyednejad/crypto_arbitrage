@@ -1,5 +1,5 @@
 from src.exchange_arbitrage_pkg.broker_config.binance_constants import Binance_Quote_Currencies
-from src.exchange_arbitrage_pkg.broker_utils.coinbase_utils.coinbase_symbol_utils import get_base_from_pair_coinbase
+from src.exchange_code_bases.advance_trade.coinbase_utils.coinbase_symbol_utils import get_base_from_pair_coinbase
 
 
 def get_base_currency_binance(pair):

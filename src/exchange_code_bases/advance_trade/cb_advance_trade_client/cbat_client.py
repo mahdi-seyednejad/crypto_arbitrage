@@ -7,11 +7,11 @@ import http.client
 from decimal import Decimal
 from coinbase.wallet.client import Client
 
-
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
 from src.exchange_arbitrage_pkg.utils.data_utils.coinbace_fetch_df import fetch_account_info_to_dataframe
 from src.exchange_arbitrage_pkg.utils.order_uuid import generate_unique_order_id
 from src.exchange_code_bases.abstract_classes.crypto_clients import CryptoClient
+from src.exchange_code_bases.advance_trade.advanced_trade_cb_git.cb_auth import CBAuth
 from src.exchange_code_bases.advance_trade.client_authentication.coinbase_auth import CoinbaseAuth
 from src.exchange_code_bases.advance_trade.error_handling.handle_withdraw_response import check_insufficient_funds_error
 
@@ -21,6 +21,9 @@ class CbAdvanceTradeClient(CryptoClient):
         self.api_key = api_auth_obj.api_key
         self.api_secret = api_auth_obj.secret_key
         self.auth = CoinbaseAuth(self.api_key, self.api_secret)
+        self.cb_auth = CBAuth()
+        self.cb_auth.set_credentials(api_key=self.api_key,
+                                     api_secret=self.api_secret)
         if api_auth_obj.is_testnet:
             self.base_url = 'https://api-public.sandbox.pro.coinbase.com'
         else:
@@ -93,8 +96,8 @@ class CbAdvanceTradeClient(CryptoClient):
                 'amount': str(trading_amount),
                 'currency': currency
             }
-            try: # Just added headers=headers,
-                response = requests.post(url, json=data, headers=headers,  auth=self.auth)
+            try:  # Just added headers=headers,
+                response = requests.post(url, json=data, headers=headers, auth=self.auth)
                 last_response = response  # Update last_response each time
 
                 if response.status_code in [200, 201]:
@@ -216,81 +219,55 @@ class CbAdvanceTradeClient(CryptoClient):
             print("Failed to retrieve the order book for the given product ID: ", product_id)
             return None
 
-    # def get_latest_prices_coinbase_at(self, sample_size=None):
-    #     url = "https://api.coinbase.com/api/v3/brokerage/products?limit=3&product_type=SPOT"
-    #     headers = {
-    #         'Content-Type': 'application/json'
-    #     }
-    #
-    #     # Send the GET request
-    #     response = requests.get(url, headers=headers, auth=self.auth)
-    #     conn = http.client.HTTPSConnection("api.coinbase.com")
-    #     conn.request("GET", url, '', headers)
-    #     res = conn.getresponse()
-    #     data = res.read()
-    #     print(data.decode("utf-8"))
-    #     # Check if the response is successful
-    #     if response.status_code == 200:
-    #         # Print the response data
-    #         return(response.json())
-    #     else:
-    #         print(f"Failed to retrieve data. Status code: {response.status_code}")
-    #         return None
+    def fetch_all_prices(self, limit=None):
+        # Convert limit to string if it's not None
+        params = {}
+        if limit is not None:
+            params['limit'] = str(limit)
 
-        # conn = http.client.HTTPSConnection("api.coinbase.com")
-        # payload = ''
-        # headers = {
-        #     'Content-Type': 'application/json'
-        # }
-        # conn.request("GET", "/api/v3/brokerage/products?limit=3&product_type=SPOT", payload, headers)
-        # res = conn.getresponse()
-        # data = res.read()
-        # print(data.decode("utf-8"))
-        # url = f"{self.base_url}/api/v3/brokerage/products?product_type=SPOT"
-        # response = requests.get(url, headers=self.auth)
+        return self.cb_auth('GET', '/api/v3/brokerage/products', params=params)
+
+    def get_prices_as_df(self, price_col, limit=None):
+        try:
+            prices = self.fetch_all_prices(limit)
+            if prices:
+                df = pd.DataFrame(prices['products'])
+                df.rename(columns={'product_id': 'symbol', 'price': price_col}, inplace=True)
+                df.dropna(subset=[price_col], inplace=True)
+                df[price_col] = pd.to_numeric(df[price_col], errors='coerce')
+                return df
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            # raise ValueError(f"Failed to get prices as DataFrame: {e}")
+            # Optionally, you can log the error or handle it differently depending on the type of error.
+            return None
+
+    def get_product_ticker(self, product_id):
+        response = self.cb_auth('GET', f'/api/v3/brokerage/products/{product_id}')
+        return response
         # if response.status_code == 200:
-        #     products_data = response.json()
-        #     product_info = [(product['product_id'], product['price']) for product in products_data['products']]
-        #
-        #     # Convert to DataFrame
-        #     df_products = pd.DataFrame(product_info, columns=['product_id', 'price'])
-        #
-        #     if sample_size:
-        #         df_products = df_products.sample(sample_size)
-        #
-        #     return df_products
+        #     return response.json()
         # else:
-        #     print("Failed to retrieve latest prices.")
         #     return None
 
-    # def fetch_withdrawal_fee_estimate(self, currency, crypto_address, network):
-    #     url = "https://api.exchange.coinbase.com/withdrawals/fee-estimate"
-    #     params = {
-    #         'currency': currency,
-    #         'crypto_address': crypto_address,
-    #         'network': network
-    #     }
-    #     headers = {
-    #         'Content-Type': 'application/json'
-    #     }
-    #
-    #     try:
-    #         response = requests.get(url, headers=headers, params=params, auth=self.auth)
-    #         if response.status_code == 200:
-    #             return response.json()
-    #         else:
-    #             print(f"Error fetching withdrawal fee estimate: Status Code {response.status_code}, Response: {response.text}")
-    #             return {'message': response.text}
-    #     except Exception as e:
-    #         print(f"Exception occurred: {e}")
-    #         return {'message': str(e)}
+    # ToDo: Write the best Get Best Bid/Ask (https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask)
+    # def get_best_bid_ask(self, symbol): To get the more accurate price or the mid_price
+    # This one also returns the mid_price https://api.coinbase.com/api/v3/brokerage/products/{product_id}
+    # https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproduct
 
-    # def get_coinbase_symbol_details(client, symbol):
-    #     df = client.fetch_account_info()
-    #     if df is not None:
-    #         buy_precision = df['base_increment']
-    #         min_buy_amount = df['base_min_size']
-    #         min_notional = df['min_market_funds']
-    #         return buy_precision, min_buy_amount, min_notional
-    #     return None, None, None
-    #
+
+
+def fetch_trade_params_coinbase(symbol):
+    """
+    Fetches trading parameters like base_increment and min_market_funds for a given symbol.
+    """
+    url = f"https://api.exchange.coinbase.com/products/{symbol}"
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise ValueError(f"Failed to get trade parameters for {symbol}")
+
+    data = response.json()
+    base_precision = float(data['base_increment'])
+    min_notional = float(data['min_market_funds'])
+    quote_precision = float(data['quote_increment'])
+    return base_precision, min_notional, quote_precision

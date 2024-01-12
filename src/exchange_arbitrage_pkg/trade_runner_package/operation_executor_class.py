@@ -1,10 +1,8 @@
-import asyncio
-
 from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
 from src.exchange_arbitrage_pkg.broker_utils.binance_utils.binance_symbol_utils import get_base_currency_binance
 from src.exchange_arbitrage_pkg.broker_utils.binance_utils.binance_trade_codes import buy_binance, sell_binance, \
     get_deposit_address_binance, check_balance_binance, withdraw_binance
-from src.exchange_arbitrage_pkg.broker_utils.coinbase_utils.coinbase_trade_code import check_balance_coinbase, \
+from src.exchange_code_bases.advance_trade.coinbase_utils.coinbase_trade_code import check_balance_coinbase, \
     buy_sell_coinbase, withdraw_coinbase, get_deposit_address_coinbase
 from src.exchange_arbitrage_pkg.utils.binance_coinbase_convertor import convert__symbol_bi_to_cb
 from src.exchange_code_bases.convertprs.bi_cb_network_convertprs import BiCbNetworkConvertor

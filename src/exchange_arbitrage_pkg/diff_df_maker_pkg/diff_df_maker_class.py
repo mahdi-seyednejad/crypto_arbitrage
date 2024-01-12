@@ -2,16 +2,15 @@ import asyncio
 import time
 from datetime import datetime
 from typing import List, Optional
-
 import pandas as pd
 
 from src.data_pkg.ts_db.table_names_ds import TableNames
 from src.data_pkg.ts_db.ts_db_handler import DbHandler
-from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import BinanceAPIKeys, CoinbaseProAPIKeys, \
+from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseAPIKeys, \
     BinanceAPIKeysHFT02
 from src.exchange_arbitrage_pkg.diff_df_maker_pkg.diff_df_maker_utils import update_data_df
-from src.exchange_arbitrage_pkg.broker_utils.coinbase_utils.coinbase_get_prices import get_latest_prices_coinbase_at
-from src.exchange_arbitrage_pkg.utils.python_utils.df_utils import convert_column_types
+# from src.exchange_code_bases.advance_trade.coinbase_utils.coinbase_get_prices import get_latest_prices_coinbase_at
+from src.exchange_arbitrage_pkg.utils.python_utils.df_utils import convert_column_types, convert_column_types_and_case
 from src.exchange_code_bases.exchange_class.advance_trade_exchange import AdvanceTradeExchange
 from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
 from src.exchange_arbitrage_pkg.utils.information_extractor import calculate_diff_and_sort, info_extractor_by_df
@@ -21,21 +20,15 @@ from src.exchange_code_bases.exchange_class.exchange_pair_class import ExchangeP
 
 class PriceDiffExtractor:
     def __init__(self,
-                 # first_exchange_obj,  # Binance in our first experiment
-                 #second_exchange_obj,  # Coinbase in our first experiment
-                  exchange_pair: ExchangePair,
+                 exchange_pair: ExchangePair,
                  col_info: ColumnInfoClass,
                  diff_db_handler: DbHandler,
                  experiment_sample_size: Optional[int] = None,
                  debug=True):
-        # self.first_exchange = first_exchange_obj # price diff = first - second
-        # self.second_exchange = second_exchange_obj
         self.first_exchange = exchange_pair.get_first_exchange()
         self.second_exchange = exchange_pair.get_second_exchange()
         self.binance_client_async = None
         self.coinbase_client_sync = exchange_pair.get_second_client_for_diff_df()
-        # self.coinbase_client_sync = second_exchange_obj.public_client
-        # self.coinbase_client_sync = second_exchange_obj.sync_client
         self.data = None
         self.debug = debug
         self.sample_size = experiment_sample_size
@@ -45,48 +38,45 @@ class PriceDiffExtractor:
         self.accumulated_data: pd.DataFrame() = None  # Todo: Concatenate new dataframes
         self.db_handler = diff_db_handler
 
-    async def get_latest_prices_binance(self):  # ToDO: move this to Exchange object
-        if not self.binance_client_async:
-            self.binance_client_async = await self.first_exchange.create_async_client()
+    async def get_latest_prices_first_ex(self):  # ToDO: move this to Exchange object
+        latest_price_df = await self.first_exchange.get_latest_prices_async(self.sample_size)
+        return latest_price_df
 
-        # Fetch the ticker prices
-        tickers = await self.binance_client_async.get_ticker()
+    # async def get_latest_prices_first_ex(self):  # ToDO: move this to Exchange object
+    #     if not self.binance_client_async:
+    #         self.binance_client_async = await self.first_exchange.create_async_client()
+    #
+    #     # Fetch the ticker prices
+    #     tickers = await self.binance_client_async.get_ticker()
+    #
+    #     # Convert the tickers to a Pandas DataFrame
+    #     tickers_df = pd.DataFrame(tickers)
+    #
+    #     # Filter symbols based on the specified criteria
+    #     filtered_df = tickers_df[tickers_df['symbol'].str.contains("US") & ~tickers_df['symbol'].str.contains(r'\d')]
+    #
+    #     # Rename the columns with the specified naming convention
+    #     rename_dict = {
+    #         col: (f'{self.first_exchange.name.value}_{col}_24h' if col not in ['symbol', 'lastPrice'] else (
+    #             self.first_exchange.price_col if col == 'lastPrice' else col)) for col in filtered_df.columns}
+    #     binance_df = filtered_df.rename(columns=rename_dict)
+    #
+    #     return binance_df
 
-        # Convert the tickers to a Pandas DataFrame
-        tickers_df = pd.DataFrame(tickers)
+    def _get_latest_prices_second_ex(self):
+        return self.second_exchange.get_latest_prices_sync(self.sample_size)
 
-        # Filter symbols based on the specified criteria
-        filtered_df = tickers_df[tickers_df['symbol'].str.contains("US") & ~tickers_df['symbol'].str.contains(r'\d')]
-
-        # Rename the columns with the specified naming convention
-        rename_dict = {
-            col: (f'{self.first_exchange.name.value}_{col}_24h' if col not in ['symbol', 'lastPrice'] else (
-                self.first_exchange.price_col if col == 'lastPrice' else col)) for col in filtered_df.columns}
-        binance_df = filtered_df.rename(columns=rename_dict)
-
-        return binance_df
-
-    def _get_latest_prices_coinbase_at(self):  # ToDO: move this to Exchange object
-        cb_price_df = get_latest_prices_coinbase_at(self.coinbase_client_sync, self.sample_size)
-        cb_price_df_not_nan = cb_price_df.dropna(subset=['price']).copy()
-        cb_price_df_not_nan.rename(columns={'id': 'symbol', 'price': self.second_exchange.price_col}, inplace=True)
-        return cb_price_df_not_nan
-
-    def _get_latest_prices_coinbase_at_async(self):  # ToDO: move this to Exchange onject
-        # cb_price_df_new = self.coinbase_client_sync.get_latest_prices_coinbase_at(self.sample_size)
-
-        cb_price_df = get_latest_prices_coinbase_at(self.coinbase_client_sync, self.sample_size)
-        cb_price_df_not_nan = cb_price_df.dropna(subset=['price']).copy()
-        cb_price_df_not_nan.rename(columns={'id': 'symbol', 'price': self.second_exchange.price_col}, inplace=True)
-        return cb_price_df_not_nan
+    # def _get_latest_prices_second_ex(self):  # ToDO: move this to Exchange object
+    #     cb_price_df = get_latest_prices_coinbase_at(self.coinbase_client_sync, self.sample_size)
+    #     cb_price_df_not_nan = cb_price_df.dropna(subset=['price']).copy()
+    #     cb_price_df_not_nan.rename(columns={'id': 'symbol', 'price': self.second_exchange.price_col}, inplace=True)
+    #     return cb_price_df_not_nan
 
     async def get_data_from_exchanges(self):
-        binance_prices = await self.get_latest_prices_binance()
-        # coinbase_prices = self._get_latest_prices_coinbase_at()
-        coinbase_prices = self._get_latest_prices_coinbase_at()
+        binance_prices = await self.get_latest_prices_first_ex()
+        coinbase_prices = self._get_latest_prices_second_ex()
         combined_df = info_extractor_by_df(binance_prices, coinbase_prices)
         combined_df[self.col_info.current_time_col] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # Convert 'binance_price' and 'coinbase_price' to numeric values
         combined_df[self.first_exchange.price_col] = pd.to_numeric(combined_df[self.first_exchange.price_col],
                                                                    errors='coerce')
         combined_df[self.second_exchange.price_col] = pd.to_numeric(combined_df[self.second_exchange.price_col],
@@ -154,11 +144,9 @@ class PriceDiffExtractor:
 
         # Step 4- Add the last 24 hours price change info
         combined_df_w_24_h_info = combined_df
-        # ToDo: Exclude the ones with price = 0
-        # ToDo: The volume is missing!
-
         filtered_df = self._filter_unwanted_symbols(combined_df_w_24_h_info)
-        new_data_df = convert_column_types(filtered_df)
+        # new_data_df = convert_column_types(filtered_df)
+        new_data_df = convert_column_types_and_case(filtered_df)
         new_data_w_src_dst = self._put_src_dst_exchange_names(new_data_df)
 
         if self.db_handler is not None:
@@ -169,7 +157,6 @@ class PriceDiffExtractor:
         self.print_debug(new_data_w_src_dst)
         return self.data
 
-    #ToDo: The following two functions shouild conceptually be in the pipeline.
     async def obtain_and_process_diff_df(self, counter, sleep_time, storage_dir=None, apply_function=None):
         try:
             result_df = await self.create_differential_df()
@@ -210,9 +197,8 @@ if __name__ == '__main__':
     run_number = 4
 
     col_obj = ColumnInfoClass()
-    # binance_exchange = BinanceExchange(BinanceAPIKeys())
     binance_exchange = BinanceExchange(BinanceAPIKeysHFT02())
-    coinbase_exchange = AdvanceTradeExchange(CoinbaseProAPIKeys())
+    coinbase_exchange = AdvanceTradeExchange(CoinbaseAPIKeys())
 
     db_handler = DbHandler(
         time_column=col_obj.current_time_col,
@@ -220,18 +206,15 @@ if __name__ == '__main__':
         table_names=TableNames(),
         debug=True)
 
-    exchange_pair = ExchangePair(first_exchange=binance_exchange,
-                                 second_exchange=coinbase_exchange)
+    example_exchange_pair = ExchangePair(first_exchange=binance_exchange,
+                                         second_exchange=coinbase_exchange)
 
-    arb_bot = PriceDiffExtractor(#first_exchange_obj=binance_exchange,
-                                 #second_exchange_obj=coinbase_exchange,
-                                 exchange_pair=exchange_pair,
+    arb_bot = PriceDiffExtractor(exchange_pair=example_exchange_pair,
                                  experiment_sample_size=sample_size,
                                  col_info=col_obj,
                                  diff_db_handler=db_handler,
                                  debug=DEBUG)
+
     asyncio.run(arb_bot.run(run_number=run_number,
                             apply_function=None,  # print_for_testing
                             storage_dir='sample_results'))
-
-

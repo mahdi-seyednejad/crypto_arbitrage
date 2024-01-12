@@ -167,9 +167,9 @@ class TimeScaleClass:
 
         create_table_query = f'CREATE TABLE IF NOT EXISTS {table_name} ({columns}, ' \
                              f'PRIMARY KEY ({out_time_column}, {symbol_col}, {side_col}))'
-        if debug:
-            print(prep_dict)
-            print(create_table_query)
+        # if debug:
+        #     print(prep_dict)
+        #     print(create_table_query)
         self.cur.execute(create_table_query)
 
         self.conn.commit()
@@ -194,50 +194,3 @@ class TimeScaleClass:
 
         # Close the cursor
         cur.close()
-
-    # def insert_dict_to_tsdb(self, data_dict, table_name, time_key, time_column, symbol, interval, debug=True):
-    #     prep_dict = {}
-    #     # Convert data_dict datatypes to native Python datatypes
-    #     for col, value in data_dict.items():
-    #         if isinstance(value, bool):
-    #             prep_dict[col] = str(value)
-    #         elif isinstance(value, np.int64):
-    #             prep_dict[col] = int(value)
-    #         elif isinstance(value, np.float64):
-    #             prep_dict[col] = float(value)
-    #         else:
-    #             prep_dict[col] = str(value)
-    #         # If date_as_index is True, convert date in the dict to the desired format
-    #         if col == time_key:
-    #             prep_dict[time_column] = value.strftime('%Y-%m-%d %H:%M:%S')
-    #
-    #     columns = ', '.join([f"{col.replace(' ', '_')} {guess_type(value)}" for col, value in prep_dict.items()])
-    #
-    #     columns += ", symbol TEXT, interval TEXT"
-    #     create_table_query = f'CREATE TABLE IF NOT EXISTS {table_name} ({columns}, PRIMARY KEY ({time_column}, symbol,interval))'
-    #     if debug:
-    #         print(prep_dict)
-    #         print(create_table_query)
-    #     self.cur.execute(create_table_query)
-    #
-    #     self.conn.commit()
-    #
-    #     # Construct the insert SQL query
-    #     cols_list = ', '.join([str(key).replace(" ", "_") for key in prep_dict.keys()])
-    #     query_str = f"INSERT INTO {table_name} ({cols_list}, symbol, interval) VALUES ({', '.join(['%s'] * len(prep_dict))}, %s, %s) ON CONFLICT DO NOTHING"
-    #     query = sql.SQL(query_str)
-    #
-    #     # Prepare the data to be inserted
-    #     data_to_insert = list(prep_dict.values()) + [symbol, interval]
-    #
-    #     # Create a cursor
-    #     cur = self.conn.cursor()
-    #
-    #     # Execute the insert SQL query
-    #     cur.execute(query, data_to_insert)
-    #
-    #     # Commit the transaction
-    #     self.conn.commit()
-    #
-    #     # Close the cursor
-    #     cur.close()

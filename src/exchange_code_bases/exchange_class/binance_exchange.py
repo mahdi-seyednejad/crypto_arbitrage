@@ -5,6 +5,7 @@ import pandas as pd
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
 from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
 from src.exchange_arbitrage_pkg.broker_utils.binance_utils.binance_symbol_utils import get_base_currency_binance
+from src.exchange_code_bases.binance_enhanced.binance_client_utils.get_latest_prices import binance_ticker_to_df
 from src.exchange_code_bases.exchange_class.base_exchange_class import ExchangeAbstractClass
 from src.exchange_code_bases.abstract_classes.crypto_clients import CryptoClient
 from src.exchange_code_bases.binance_enhanced.binance_clients.binance_async_client import BinanceAsyncClient
@@ -92,7 +93,7 @@ class BinanceExchange(ExchangeAbstractClass):
                     if debug:
                         print(f"Second chance for {symbol} on Binance")
                         print("Waiting ....")
-                    await asyncio.sleep(timeout/2)
+                    await asyncio.sleep(timeout / 2)
                 else:
                     break
         return False
@@ -103,3 +104,16 @@ class BinanceExchange(ExchangeAbstractClass):
     async def get_available_amount_async(self, currency):
         return await self.async_obj.sync_client.fetch_budget(currency)
 
+    def get_latest_prices_sync(self, sample_size=None):
+        tickers = self.sync_client.client.get_ticker()
+        return binance_ticker_to_df(tickers=tickers,
+                                    name=self.name.value,
+                                    output_price_col=self.price_col)
+
+    async def get_latest_prices_async(self, sample_size=None):
+        if not self.async_client:
+            self.async_client = await self.create_async_client()
+        tickers = await self.async_client.get_ticker()
+        return binance_ticker_to_df(tickers=tickers,
+                                    name=self.name.value,
+                                    output_price_col=self.price_col)

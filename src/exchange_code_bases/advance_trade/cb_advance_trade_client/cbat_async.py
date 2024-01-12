@@ -1,8 +1,6 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
-import aiohttp
-
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
 from src.exchange_code_bases.advance_trade.cb_advance_trade_client.cbat_client import CbAdvanceTradeClient
 
@@ -103,3 +101,8 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
                 return False
 
             await asyncio.sleep(check_interval)
+
+    async def get_prices_as_df(self, price_col, limit=None):
+        result = await self.async_wrap(super().get_prices_as_df, price_col, limit)
+        return result
+

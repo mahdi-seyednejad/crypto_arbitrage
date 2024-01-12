@@ -2,6 +2,8 @@ import requests
 import decimal
 import math
 
+from src.exchange_code_bases.advance_trade.cb_advance_trade_client.cbat_client import fetch_trade_params_coinbase
+
 
 def fetch_latest_price(symbol):
     """
@@ -16,34 +18,18 @@ def fetch_latest_price(symbol):
     return latest_price
 
 
-def adjust_quote_size_coinbase(quote_size, quote_increment):
-    """
-    Adjusts the quote size to match the required precision.
-    """
-    # Convert to Decimal for precision in calculations
-    quote_size = decimal.Decimal(str(quote_size))
-    quote_increment = decimal.Decimal(str(quote_increment))
-
-    # Adjust the quote size
-    adjusted_quote_size = (quote_size // quote_increment) * quote_increment
-
-    return adjusted_quote_size
-
-
-def fetch_trade_params_coinbase(symbol):
-    """
-    Fetches trading parameters like base_increment and min_market_funds for a given symbol.
-    """
-    url = f"https://api.exchange.coinbase.com/products/{symbol}"
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise ValueError(f"Failed to get trade parameters for {symbol}")
-
-    data = response.json()
-    base_precision = float(data['base_increment'])
-    min_notional = float(data['min_market_funds'])
-    quote_precision = float(data['quote_increment'])
-    return base_precision, min_notional, quote_precision
+# def adjust_quote_size_coinbase(quote_size, quote_increment):
+#     """
+#     Adjusts the quote size to match the required precision.
+#     """
+#     # Convert to Decimal for precision in calculations
+#     quote_size = decimal.Decimal(str(quote_size))
+#     quote_increment = decimal.Decimal(str(quote_increment))
+#
+#     # Adjust the quote size
+#     adjusted_quote_size = (quote_size // quote_increment) * quote_increment
+#
+#     return adjusted_quote_size
 
 
 def adjust_buy_amount_coinbase(quote_precision, suggested_amount, current_price, min_notional):

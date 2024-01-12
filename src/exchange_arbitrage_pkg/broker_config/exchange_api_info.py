@@ -59,13 +59,13 @@ class BinanceAPIKeysTestNet(APIAuthClass):
         self.is_testnet = True
 
 
-class CoinbaseProAPIKeys(APIAuthClass):
-    def __init__(self):
-        super().__init__()
-        self.api_key = str(os.environ.get("Coinbase_pro_api_key"))
-        self.secret_key = str(os.environ.get("Coinbase_pro_decret_key"))
-        self.pass_phrase = str(os.environ.get("Cpinbase_pro_pass_phrase"))
-        self.is_testnet = False
+# class CoinbaseProAPIKeys(APIAuthClass):
+#     def __init__(self):
+#         super().__init__()
+#         self.api_key = str(os.environ.get("Coinbase_pro_api_key"))
+#         self.secret_key = str(os.environ.get("Coinbase_pro_decret_key"))
+#         self.pass_phrase = str(os.environ.get("Cpinbase_pro_pass_phrase"))
+#         self.is_testnet = False
 
 
 class BinanceAPIKeys(APIAuthClass):

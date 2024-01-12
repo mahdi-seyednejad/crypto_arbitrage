@@ -20,6 +20,16 @@ from src.exchange_code_bases.exchange_class.advance_trade_exchange import Advanc
 binance_exchange = BinanceExchange(BinanceAPIKeysHFT01())
 coinbase_exchange = AdvanceTradeExchange(CoinbaseAPIKeys())
 
+def test_get_order_book():
+    limit=50
+    old_way = coinbase_exchange.get_latest_prices_sync(sample_size=limit)
+    # print(old_way)
+    prices = coinbase_exchange.sync_client.get_prices_as_df(price_col='cb_at_price', limit=100)
+    # print(prices)
+    product_id = "BTC-USD"
+    product_ticker = coinbase_exchange.sync_client.get_product_ticker(product_id=product_id)
+    print(product_ticker)
+
 
 async def busy_waiting_cb_test():
     symbol = "BTRSTUSDT"

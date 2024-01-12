@@ -77,7 +77,7 @@ class ColumnInfoClass:
                  price_change_24h_col="price_change_24h",
                  recency_col="recency",
                  current_time_col="system_time",
-                 bi_price_change_24h="binance_priceChangePercent_24h",
+                 bi_price_change_24h="binance_price_change_percent_24h",
                  is_good_to_trade_col="is_good_to_trade_col",
                  withdraw_fee_col="withdraw_fee",
                  symbol_eval_col_obj: ColumnSymbolEvalClass = ColumnSymbolEvalClass(),

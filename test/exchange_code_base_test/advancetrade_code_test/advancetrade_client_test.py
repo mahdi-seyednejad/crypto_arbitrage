@@ -3,21 +3,6 @@ from src.exchange_code_bases.exchange_class.advance_trade_exchange import Advanc
 import pprint
 
 
-# def test_advancetrade_client():
-#     """Tests for advancetrade_client"""
-#     # coinbase_exchange = AdvanceTradeExchange(CoinbaseAPIKeys())
-#     # client = coinbase_exchange.sync_client
-#     # res = client.get_coinbase_symbol_details("BTC-USD")
-#     adjusted_qty_market = adjust_trade_amount_coinbase(symbol="BTC-USD",
-#                                                        suggested_amount=0.0123450006789001)
-#     print(adjusted_qty_market)
-#
-#     adjusted_qty_limit = adjust_trade_amount_coinbase(symbol="BTC-USD",
-#                                                       suggested_amount=0.0123450006789001,
-#                                                       price=37860.0)
-#     print(adjusted_qty_limit)
-
-
 
 if __name__ == '__main__':
     coinbase_exchange = AdvanceTradeExchange(CoinbaseAPIKeys())

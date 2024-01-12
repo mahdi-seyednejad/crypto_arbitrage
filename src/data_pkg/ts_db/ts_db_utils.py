@@ -32,6 +32,9 @@ pandas_to_sql_types = {
 def get_col_types_sql(df):
     col_types = {}
     for col in df.columns:
+        # print(f"Column: {col}")
+        unique_types = df[col].apply(type).unique()
+        # print(f"Unique types in the column: {unique_types}")
         pandas_type = str(df[col].dtype)
         col_types[col] = pandas_to_sql_types.get(pandas_type, 'TEXT')
         if "datetime" in str(pandas_type):

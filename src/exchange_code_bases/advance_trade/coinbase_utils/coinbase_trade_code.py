@@ -1,10 +1,7 @@
-from decimal import Decimal
-
-
 # Function to check balance for a given currency
-from src.exchange_arbitrage_pkg.broker_utils.coinbase_utils.coinbase_symbol_utils import get_base_from_pair_coinbase
-from src.exchange_arbitrage_pkg.utils.symbol_pair_pkg.advancetrade_symbol_funcs.symbol_info_fetch_cb import \
+from src.exchange_code_bases.advance_trade.advancetrade_symbol_funcs.symbol_info_fetch_cb import \
     adjust_trade_amount_coinbase, adjust_withdrawal_amount
+from src.exchange_code_bases.advance_trade.coinbase_utils.coinbase_symbol_utils import get_base_from_pair_coinbase
 
 
 async def check_balance_coinbase(client, symbol, debug=False):
