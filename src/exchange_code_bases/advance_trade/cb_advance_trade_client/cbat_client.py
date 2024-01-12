@@ -1,11 +1,6 @@
 import requests
 import pandas as pd
-import http.client
-import json
-from requests.auth import AuthBase
-import http.client
 from decimal import Decimal
-from coinbase.wallet.client import Client
 
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
 from src.exchange_arbitrage_pkg.utils.data_utils.coinbace_fetch_df import fetch_account_info_to_dataframe

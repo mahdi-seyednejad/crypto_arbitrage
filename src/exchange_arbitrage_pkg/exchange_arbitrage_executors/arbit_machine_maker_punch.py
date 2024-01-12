@@ -104,49 +104,6 @@ class ArbitrageMachineMakerPunch:
                                                   ex_pair=exchange_pair,
                                                   is_seller_first=False,
                                                   secondary=secondary)
-    # def get_arbit_machine_seller_FIRST(self, row):
-
-    # src_exchange = self.exchange_pair.get_second_exchange()
-        # # (secondary_symbol, sec_symbol_price) = get_sec_symbol_and_price(self.best_sell_symbols_ex_2,
-        # #                                                                 self.best_backup_rank_symbols_ex_2)
-        # secondary = get_sec_symbol_and_price(self.best_sell_symbols_ex_2, self.best_backup_rank_symbols_ex_2)
-        # return ArbitrageMachinePunches(name=self.exchange_pair.name_first_seller,
-        #                                src_exchange_platform=src_exchange,
-        #                                dst_exchange_platform=self.exchange_pair.get_first_exchange(),
-        #                                row=row,
-        #                                col_info_obj=self.col_info_obj,
-        #                                ex_price_cols=self.exchange_pair.get_all_price_cols(),
-        #                                budget=self.get_assigned_allowed_budget(src_exchange, row),
-        #                                min_acceptable_budget=self.trade_hy_params_obj.min_acceptable_budget,
-        #                                secondary_symbol=secondary.symbol,
-        #                                secondary_symbol_price=secondary.price,
-        #                                secondary_symbol_withdraw_fee=secondary.withdraw_fee,
-        #                                operation_executor=self.exchange_pair.get_operation_executor(),
-        #                                wait_time_info=self.trade_hy_params_obj.wait_time_deposit,
-        #                                debug=self.debug)
-
-    # def get_arbit_machine_seller_SECOND(self, row):
-    #     #ToDo:>>>> Here, pick the next EX_pair in the expair queue.
-    #
-    #     # The seller (the second exchange) will be the destination exchange
-    #     src_exchange = self.exchange_pair.get_first_exchange()
-    #     # (secondary_symbol, sec_symbol_price) = get_sec_symbol_and_price(self.best_sell_symbols_ex_1,
-    #     #                                                                 self.best_backup_rank_symbols_ex_1)
-    #     secondary = get_sec_symbol_and_price(self.best_sell_symbols_ex_1, self.best_backup_rank_symbols_ex_1)
-    #     return ArbitrageMachinePunches(name=self.exchange_pair.name_second_seller,
-    #                                    src_exchange_platform=self.exchange_pair.get_first_exchange(),
-    #                                    dst_exchange_platform=self.exchange_pair.get_second_exchange(),
-    #                                    row=row,
-    #                                    col_info_obj=self.col_info_obj,
-    #                                    budget=self.get_assigned_allowed_budget(src_exchange, row),
-    #                                    min_acceptable_budget=self.trade_hy_params_obj.min_acceptable_budget,
-    #                                    ex_price_cols=self.exchange_pair.get_all_price_cols(),
-    #                                    secondary_symbol=secondary.symbol,
-    #                                    secondary_symbol_price=secondary.price,
-    #                                    secondary_symbol_withdraw_fee=secondary.withdraw_fee,
-    #                                    operation_executor=self.exchange_pair.get_operation_executor(),
-    #                                    wait_time_info=self.trade_hy_params_obj.wait_time_deposit,
-    #                                    debug=self.debug)
 
     def decide_arbitrage_machine(self, row):
         if row[self.col_info_obj.price_diff_col] > 0:  # Binance is more expensive => Binance is the seller
