@@ -3,7 +3,7 @@ import socket
 
 from src.data_pkg.ts_db.table_names_ds import TableNames
 from src.data_pkg.ts_db.ts_db_handler import DbHandler
-from src.exchange_arbitrage_pkg.symbol_arbitrage_eval_pkg.symbol_eval_w_formula import SymbolEvaluatorFormula
+from src.exchange_arbitrage_pkg.utils.debug_object import DebugClass
 
 # Store the original getaddrinfo to restore later if needed
 original_getaddrinfo = socket.getaddrinfo
@@ -18,27 +18,22 @@ socket.getaddrinfo = getaddrinfo_ipv4_only
 ##########################################
 
 
-import asyncio
-from typing import Type, Optional, Dict
-
 from src.exchange_arbitrage_pkg.diff_df_maker_pkg.diff_df_maker_class import PriceDiffExtractor
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseAPIKeys, BinanceAPIKeysHFT01
 from src.exchange_arbitrage_pkg.exchange_arbitrage_executors.arbit_machine_maker_punch import ArbitrageMachineMakerPunch
 from src.exchange_code_bases.exchange_class.advance_trade_exchange import AdvanceTradeExchange
 from src.exchange_code_bases.exchange_class.binance_exchange import BinanceExchange
 from src.exchange_code_bases.exchange_class.exchange_pair_class import ExchangePair
-from src.exchange_arbitrage_pkg.symbol_arbitrage_eval_pkg.symbol_evaluator import SymbolEvaluatorArbitrage
 from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
-from src.exchange_arbitrage_pkg.utils.hyper_parameters.trade_hyper_parameter_class import TradeHyperParameter, \
-    WaitTimeDeposit
+from src.exchange_arbitrage_pkg.utils.hyper_parameters.trade_hyper_parameter_class import TradeHyperParameter
 
 
 class SimplePipeline:
     def __init__(self,
                  trade_hyper_parameters: TradeHyperParameter,
                  table_names: TableNames,
-                 debug: bool):
-        self.debug = debug
+                 debug_obj: DebugClass):
+        self.debug_obj = debug_obj
         self.trade_hyper_parameters = trade_hyper_parameters
         self.sample_size = self.trade_hyper_parameters.diff_maker_config.sample_size  # Just for testing
         self.storage_dir = self.trade_hyper_parameters.diff_maker_config.storage_dir
@@ -52,21 +47,21 @@ class SimplePipeline:
             time_column=self.column_info_obj.current_time_col,
             date_as_index=False,
             table_names=table_names,
-            debug=True)
+            debug=self.debug_obj.db_handler_debug)
 
     def _get_diff_df_maker_obj(self):
         return PriceDiffExtractor(exchange_pair=self.exchange_pair,
                                   col_info=self.column_info_obj,
                                   diff_db_handler=self.db_handler,
                                   experiment_sample_size=self.sample_size,
-                                  debug=self.debug)
+                                  debug=self.debug_obj.price_diff_debug)
 
     def _get_arbitrage_maker_obj(self):
         return ArbitrageMachineMakerPunch(exchange_pair=self.exchange_pair,
                                           col_info_obj=self.column_info_obj,
                                           trade_hy_params_obj=self.trade_hyper_parameters,
                                           db_handler=self.db_handler,
-                                          debug=self.debug)
+                                          debug=self.debug_obj.arbitrage_machine_debug)
 
     async def run_pipeline(self):
         diff_df_maker_obj = self._get_diff_df_maker_obj()

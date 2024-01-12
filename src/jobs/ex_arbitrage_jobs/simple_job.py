@@ -1,6 +1,8 @@
 ##########   Force to use IPv4   #########
 import socket
 
+from src.exchange_arbitrage_pkg.utils.debug_object import DebugClass
+
 # Store the original getaddrinfo to restore later if needed
 original_getaddrinfo = socket.getaddrinfo
 
@@ -22,7 +24,9 @@ from src.pipelines.exchange_arbitrage_pipeline.simple_pipeline import SimplePipe
 
 
 def main_job():
-    DEBUG = True
+    debug_obj = DebugClass(price_diff_debug=True,
+                           arbitrage_machine_debug=True,
+                           db_handler_debug=False)
 
     waite_time_obj = WaitTimeDeposit(check_interval=10,  # Get this to the punches
                                      timeout=800,
@@ -54,10 +58,10 @@ def main_job():
 
     pipeline = SimplePipeline(trade_hyper_parameters=tr_hype_param,
                               table_names=my_table_names,
-                              debug=DEBUG)
+                              debug_obj=debug_obj)
 
     loop = asyncio.get_event_loop()
-    loop.set_debug(DEBUG)
+    loop.set_debug(debug_obj.least_true())
     asyncio.run(pipeline.run_pipeline())
 
 

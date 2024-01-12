@@ -151,7 +151,7 @@ class ArbitrageMachineMakerPunch:
         self._insert_evaluated_symbols_to_db(df_ranked)
         if self.debug:
             print("The evaluated symbols are: ")
-            print(df_ranked)
+            print(df_ranked.to_string())
 
         df_filtered = self._filter_bad_symbols(df_ranked)
 
