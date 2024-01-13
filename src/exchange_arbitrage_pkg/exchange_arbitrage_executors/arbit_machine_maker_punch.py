@@ -138,6 +138,17 @@ class ArbitrageMachineMakerPunch:
         df[self.col_info_obj.current_time_col] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.db_handler.insert_evaluated_symbols(df)
 
+    def debug_print(self, df_ranked):
+        if self.debug:
+            print("The evaluated symbols are: ")
+            columns = [self.col_info_obj.symbol_col,
+                       self.col_info_obj.price_diff_col] + \
+                       self.exchange_pair.get_all_price_cols() + \
+                      [self.col_info_obj.order_book_col_obj.profit_col,
+                       self.col_info_obj.symbol_eval_col_obj.is_good_to_trade_col]
+
+            print(df_ranked[columns].to_string())
+
     async def _create_arbitrage_machine_for_one_bucket(self, df_in):
         # ToDo: Make a source and destination exchange list and iterate over them.
         # We just work on the first bucket for now.
@@ -149,9 +160,17 @@ class ArbitrageMachineMakerPunch:
 
         # self.db_handler.insert_evaluated_symbols(df_ranked)
         self._insert_evaluated_symbols_to_db(df_ranked)
-        if self.debug:
-            print("The evaluated symbols are: ")
-            print(df_ranked.to_string())
+        self.debug_print(df_ranked)
+        # if self.debug:
+        #     print("The evaluated symbols are: ")
+        #     columns = [self.col_info_obj.symbol_col,
+        #                self.col_info_obj.price_diff_col] + \
+        #                self.exchange_pair.get_all_price_cols() + \
+        #               [self.col_info_obj.symbol_eval_col_obj.max_trade_qty_col,
+        #                self.col_info_obj.order_book_col_obj.profit_col,
+        #                self.col_info_obj.symbol_eval_col_obj.is_good_to_trade_col]
+        #
+        #     print(df_ranked[columns].to_string())
 
         df_filtered = self._filter_bad_symbols(df_ranked)
 
@@ -217,7 +236,7 @@ class ArbitrageMachineMakerPunch:
 
     async def create_and_run_arbit_machines(self, df_in):  # The main function that gets the dataframe
         # self._update_best_sell_symbols_info_(df_in)
-        #ToDo: IMPORTANT!!!!! You need to use one API per symbol.
+        # ToDo: IMPORTANT!!!!! You need to use one API per symbol.
         # There is a chance that the API is getting blocked due to frequent requests.
         arbitrage_machines = await self._create_arbitrage_machine_for_one_bucket(df_in)
         trade_runner_positive = TradeRunner(arbitrage_machines, self.debug)
