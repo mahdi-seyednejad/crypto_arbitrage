@@ -89,8 +89,8 @@ class AsyncAdvanceTradeClient(CbAdvanceTradeClient):
             current_balance, has_bought_before = await self.check_balance_coinbase(symbol)
             min_expected_amount = expected_amount * (1 - amount_loss)
             if debug:
-                print(f"Current balance for {symbol} on Binance: {current_balance}")
-                print(f"Expected balance for {symbol} on Binance: {min_expected_amount}")
+                print(f"Current balance for {symbol} on Coinbase: {current_balance}")
+                print(f"Expected balance for {symbol} on Coinbase: {min_expected_amount}")
             if has_bought_before:
                 if current_balance >= min_expected_amount:
                     return True
