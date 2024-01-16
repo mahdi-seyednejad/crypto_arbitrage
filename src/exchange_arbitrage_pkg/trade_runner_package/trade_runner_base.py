@@ -32,5 +32,11 @@ class TradeRunner:
     async def execute(self):
         try:
             await self.run_all_trades()
+            # Close all client sessions
+            for ex_machine in self.exchange_machines:
+                if hasattr(ex_machine.src_exchange_platform, 'close'):
+                    await ex_machine.src_exchange_platform.close()
+                if hasattr(ex_machine.dst_exchange_platform, 'close'):
+                    await ex_machine.dst_exchange_platform.close()
         except Exception as e:
             print(f"An error occurred in execute: {e}")

@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+import aiohttp
+
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
 from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
 from src.exchange_arbitrage_pkg.budget_manager.budget_manager_class import BudgetManager
@@ -22,6 +24,7 @@ class ExchangeAbstractClass(ABC):
         self.transaction_fee_rate = None  # ToDO: Move the transaction fee here
         self.maker_fee_rate = None  # ToDO: Move the maker fee here
         self.taker_fee_rate = None  # ToDO: Move the taker fee here
+        self.session = aiohttp.ClientSession()
 
     def get_transaction_fee_rate(self):
         return self.transaction_fee_rate
@@ -82,4 +85,7 @@ class ExchangeAbstractClass(ABC):
 
     async def get_available_amount_async(self, currency):
         return await self.async_obj.client.fetch_budget(currency)
+
+    async def close(self):
+        await self.session.close()
 
