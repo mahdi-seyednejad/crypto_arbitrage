@@ -22,6 +22,7 @@ class BinanceExchange(ExchangeAbstractClass):
         self.budget = None
         self.price_col = 'binance_price'
         self.transaction_fee_rate = 0.001
+        self.quote_volume_col = "binance_quoteVolume_24h"
 
     async def create_async_client(self):
         self.async_obj = BinanceAsyncClient(api_auth_obj=self.api_auth_obj)
@@ -117,3 +118,9 @@ class BinanceExchange(ExchangeAbstractClass):
         return binance_ticker_to_df(tickers=tickers,
                                     name=self.name.value,
                                     output_price_col=self.price_col)
+
+    def filter_diff_df(self, diff_df):
+        df = diff_df.copy()
+        df = df[df[self.price_col] != 0]
+        df = df[df[self.quote_volume_col].astype(float) > 0]
+        return df

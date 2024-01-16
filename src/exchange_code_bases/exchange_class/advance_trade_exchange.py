@@ -25,6 +25,8 @@ class AdvanceTradeExchange(ExchangeAbstractClass):
         self.price_col = 'adv_trade_price'
         self.vol_col = "adv_trade_volume_col"
         self.transaction_fee_rate = 0.001
+        self.trading_disabled_col = 'trading_disabled'
+        self.is_limit_only_col = 'limit_only'
 
     async def create_async_client(self):
         self.async_obj = AsyncAdvanceTradeClient(api_auth_obj=self.api_auth_obj)
@@ -108,3 +110,9 @@ class AdvanceTradeExchange(ExchangeAbstractClass):
     async def get_latest_prices_async(self, sample_size=None):
         return await self.async_client.get_prices_as_df(price_col=self.price_col,
                                                         limit=sample_size)
+
+    def filter_diff_df(self, diff_df):
+        df = diff_df.copy()
+        df = df[df[self.price_col] != 0]
+        df = df[~df[self.trading_disabled_col].astype(bool)]
+        return df

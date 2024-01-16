@@ -35,12 +35,13 @@ async def withdraw_coinbase(client, symbol, amount, crypto_address, debug=False)
     amount_adjusted = inner_amount_Adjuster(amount)
     return await client.withdraw_to_address_persistent(crypto_address, amount_adjusted, base_currency,
                                                        inner_amount_Adjuster, 8)
-    # return await client.withdraw_to_address(address=crypto_address,
-    #                                         amount=amount_adjusted,
-    #                                         currency=base_currency)
+
 
 
 # Function to get deposit address for a given currency
 async def get_deposit_address_coinbase(client, symbol, debug=False):
     currency = get_base_from_pair_coinbase(symbol)
+    if debug:
+        print(f"Coinbase AT - Deposit address for {currency}: {'deposit_address'}")
+
     return await client.fetch_deposit_address(currency)

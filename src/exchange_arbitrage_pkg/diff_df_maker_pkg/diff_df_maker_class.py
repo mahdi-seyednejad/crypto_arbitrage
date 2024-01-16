@@ -38,42 +38,15 @@ class PriceDiffExtractor:
         self.accumulated_data: pd.DataFrame() = None  # Todo: Concatenate new dataframes
         self.db_handler = diff_db_handler
 
-    async def get_latest_prices_first_ex(self):  # ToDO: move this to Exchange object
+    async def _get_latest_prices_first_ex(self):
         latest_price_df = await self.first_exchange.get_latest_prices_async(self.sample_size)
         return latest_price_df
-
-    # async def get_latest_prices_first_ex(self):  # ToDO: move this to Exchange object
-    #     if not self.binance_client_async:
-    #         self.binance_client_async = await self.first_exchange.create_async_client()
-    #
-    #     # Fetch the ticker prices
-    #     tickers = await self.binance_client_async.get_ticker()
-    #
-    #     # Convert the tickers to a Pandas DataFrame
-    #     tickers_df = pd.DataFrame(tickers)
-    #
-    #     # Filter symbols based on the specified criteria
-    #     filtered_df = tickers_df[tickers_df['symbol'].str.contains("US") & ~tickers_df['symbol'].str.contains(r'\d')]
-    #
-    #     # Rename the columns with the specified naming convention
-    #     rename_dict = {
-    #         col: (f'{self.first_exchange.name.value}_{col}_24h' if col not in ['symbol', 'lastPrice'] else (
-    #             self.first_exchange.price_col if col == 'lastPrice' else col)) for col in filtered_df.columns}
-    #     binance_df = filtered_df.rename(columns=rename_dict)
-    #
-    #     return binance_df
 
     def _get_latest_prices_second_ex(self):
         return self.second_exchange.get_latest_prices_sync(self.sample_size)
 
-    # def _get_latest_prices_second_ex(self):  # ToDO: move this to Exchange object
-    #     cb_price_df = get_latest_prices_coinbase_at(self.coinbase_client_sync, self.sample_size)
-    #     cb_price_df_not_nan = cb_price_df.dropna(subset=['price']).copy()
-    #     cb_price_df_not_nan.rename(columns={'id': 'symbol', 'price': self.second_exchange.price_col}, inplace=True)
-    #     return cb_price_df_not_nan
-
     async def get_data_from_exchanges(self):
-        binance_prices = await self.get_latest_prices_first_ex()
+        binance_prices = await self._get_latest_prices_first_ex()
         coinbase_prices = self._get_latest_prices_second_ex()
         combined_df = info_extractor_by_df(binance_prices, coinbase_prices)
         combined_df[self.col_info.current_time_col] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -83,14 +56,14 @@ class PriceDiffExtractor:
                                                                     errors='coerce')
         return combined_df
 
-    def update_and_sort_data(self, new_df):
+    def _update_and_sort_data(self, new_df):
         new_data_df = update_data_df(original_df_in=self.data, new_df=new_df)
         new_data_df.sort_values(by=[self.col_info.current_price_diff_percentage_col,
                                     self.col_info.recency_col, self.col_info.price_diff_col],
                                 ascending=[False, False, False], inplace=True)
         return new_data_df
 
-    def print_debug(self, new_data_df):
+    def _print_debug(self, new_data_df):
         if self.debug:
             print("\n")
             num_row_to_show = 10
@@ -104,13 +77,13 @@ class PriceDiffExtractor:
             print(self.data[selected_cols].head(num_row_to_show).to_string())
             print("*" * 60)
 
-    def get_src_exchange_name(self, row):
+    def _get_src_exchange_name(self, row):
         if row[self.col_info.price_diff_col] > 0:
             return self.second_exchange.name.value
         else:
             return self.first_exchange.name.value
 
-    def get_dst_exchange_name(self, row):
+    def _get_dst_exchange_name(self, row):
         if row[self.col_info.price_diff_col] > 0:
             return self.first_exchange.name.value
         else:
@@ -118,15 +91,20 @@ class PriceDiffExtractor:
 
     def _put_src_dst_exchange_names(self, df_in):
         df = df_in.copy()
-        df[self.col_info.src_exchange_name_col] = df.apply(self.get_src_exchange_name, axis=1)
-        df[self.col_info.dst_exchange_name_col] = df.apply(self.get_dst_exchange_name, axis=1)
+        df[self.col_info.src_exchange_name_col] = df.apply(self._get_src_exchange_name, axis=1)
+        df[self.col_info.dst_exchange_name_col] = df.apply(self._get_dst_exchange_name, axis=1)
         return df
 
     def _filter_unwanted_symbols(self, df_in):
         df = df_in.copy()
         df = df[df[self.col_info.price_diff_col] != 0]
-        df = df[df[self.first_exchange.price_col] > 0]
-        df = df[df[self.second_exchange.price_col] > 0]
+        df = self.first_exchange.filter_diff_df(df)
+        df = self.second_exchange.filter_diff_df(df)
+        # df = df[df[self.first_exchange.price_col] > 0]
+        # df = df[df[self.second_exchange.price_col] > 0]
+        # #ToDo: Make sure the crympos are available for trading:
+        # df = df[df[self.second_exchange.price_col] > 0]
+        # Volume > 0
         return df
 
     async def create_differential_df(self):
@@ -153,8 +131,8 @@ class PriceDiffExtractor:
             self.db_handler.insert_stream_diff_data_df(new_data_w_src_dst)
 
         # Step 5- Update the data
-        self.data = self.update_and_sort_data(new_df=new_data_w_src_dst)
-        self.print_debug(new_data_w_src_dst)
+        self.data = self._update_and_sort_data(new_df=new_data_w_src_dst)
+        self._print_debug(new_data_w_src_dst)
         return self.data
 
     async def obtain_and_process_diff_df(self, counter, sleep_time, storage_dir=None, apply_function=None):

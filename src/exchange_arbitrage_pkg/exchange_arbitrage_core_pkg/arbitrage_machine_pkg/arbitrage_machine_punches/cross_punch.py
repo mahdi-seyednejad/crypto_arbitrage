@@ -59,7 +59,7 @@ class CrossPunch(ArbitrageMachinePunchSAbstract):
         if should_buy:
             # if quantity_to_buy > 0:
             if self.debug:
-                print(f"Buying {quantity_to_buy} of {self.symbol} to reach desired quantity on"
+                print(f"Buying {quantity_to_buy} of {self.symbol} to reach desired quantity= {self.desired_quantity} on"
                       f" {self.src_exchange_platform.name}.")
             order_buy, amount_bought = await self.buyer.buy_crypto(exchange_platform=self.src_exchange_platform,
                                                                    symbol=self.symbol,
@@ -131,72 +131,3 @@ class CrossPunch(ArbitrageMachinePunchSAbstract):
         return order_log
 
 
-
-
-    # async def punch_old(self):
-    #     # Calculate the threshold quantity
-    #
-    #     # Step 1: Check Available Crypto
-    #     current_symbol_balance = await self.checker.check_available_crypto(self.src_exchange_platform,
-    #                                                                        self.symbol)
-    #     # Step 2: Doe we need to buy?
-    #     should_buy, quantity_to_buy = await self.decide_to_buy_amount(current_symbol_balance)
-    #
-    #     # Step 2-1: Buy (if needed)
-    #     order_buy = 'No Need to Buy'
-    #     ## Check if the quantity to buy is greater than both the threshold and the minimum notional value
-    #     if should_buy:
-    #         # if quantity_to_buy > 0:
-    #         if self.debug:
-    #             print(f"Buying {quantity_to_buy} of {self.symbol} to reach desired quantity")
-    #         order_buy, amount_bought = await self.buyer.buy_crypto(exchange_platform=self.src_exchange_platform,
-    #                                                                symbol=self.symbol,
-    #                                                                quantity=quantity_to_buy,
-    #                                                                current_price=self.src_current_price)
-    #         if self.debug:
-    #             print(f"In cross punch, on {self.src_exchange_platform.name}, bought {amount_bought} of {self.symbol}")
-    #             print(f"Successfully bought {amount_bought} of {self.symbol}")
-    #         # ToDo: Check to see how much was successfully bought
-    #         if amount_bought == -1:  # It was bought successfully
-    #             return -1
-    #     order_log = {f'order_buy_{self.symbol}': order_buy}
-    #     # Step 3: move the crypto from src to the dst exchange
-    #
-    #     current_symbol_balance = await self.checker.check_available_crypto(self.src_exchange_platform,
-    #                                                                        self.symbol)
-    #     balance_after_check_buy = float(current_symbol_balance)
-    #     amount_to_move = min(balance_after_check_buy, self.desired_quantity) - self.withdraw_fee
-    #     order_move = await self.mover.move_crypto(self.src_exchange_platform,
-    #                                               self.dst_exchange_platform,
-    #                                               self.symbol,
-    #                                               amount_to_move)
-    #     order_log[f'order_move_{self.symbol}'] = order_move
-    #
-    #     order_sell = await self._wait_then_sell(order_move, amount_to_move)
-    #     order_log[f'order_sell_{self.symbol}'] = order_sell
-    #     self.order_log_chain.append(order_log)
-        # if order_move is None:
-        #     if self.debug:
-        #         print(f"Could not move {self.symbol} from {self.src_exchange_platform.name} to "
-        #               f"{self.dst_exchange_platform.name}")
-        #     order_log[f'order_sell_{self.symbol}'] = {'Could not move the crypto from src to dst'}
-        # else:
-        #     # Step 4: Sell the crypto on the dst exchange
-        #     was_received = await self.dst_exchange_platform.wait_til_receive_Async(symbol=self.symbol,
-        #                                                                            expected_amount=self.desired_quantity,
-        #                                                                            check_interval=10,
-        #                                                                            timeout=800,
-        #                                                                            amount_loss=0.05,
-        #                                                                            second_chance=True)
-        #
-        #     if was_received:
-        #         order_sell = await self.seller.sell_crypto(self.dst_exchange_platform,
-        #                                                    self.symbol,
-        #                                                    amount_to_move)
-        #         order_log[f'order_sell_{self.symbol}'] = order_sell
-        #         self.order_log_chain.append(order_log)
-        #     else:
-        #         print(f"Did not receive {self.desired_quantity} of {self.symbol} "
-        #               f"on {self.dst_exchange_platform.name} in time")
-        #         order_log[f'order_sell_{self.symbol}'] = None
-        return order_log

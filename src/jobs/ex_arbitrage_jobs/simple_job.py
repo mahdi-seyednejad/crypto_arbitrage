@@ -65,7 +65,6 @@ def main_job():
     asyncio.run(pipeline.run_pipeline())
 
 
-
 if __name__ == '__main__':
     main_job()
 

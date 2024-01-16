@@ -76,6 +76,10 @@ class ExchangeAbstractClass(ABC):
     def get_current_price(self, symbol):
         pass
 
+    @abstractmethod
+    def filter_diff_df(self, diff_df):
+        pass
+
     async def get_available_amount_async(self, currency):
         return await self.async_obj.client.fetch_budget(currency)
 

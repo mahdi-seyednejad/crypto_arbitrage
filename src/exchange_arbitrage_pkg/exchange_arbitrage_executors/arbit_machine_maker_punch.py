@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Tuple
+from typing import List
 
 from src.data_pkg.ts_db.ts_db_handler import DbHandler
 from src.exchange_arbitrage_pkg.budget_manager.budget_assigner.simple_budget_assigner import uniform_budget_assigner
@@ -9,8 +9,6 @@ from src.exchange_arbitrage_pkg.exchange_arbitrage_executors.exchange_arbitrage_
     BestSymbolStructure
 from src.exchange_arbitrage_pkg.exchange_arbitrage_executors.exchange_arbitrage_utils import get_sec_symbol_and_price
 from src.exchange_arbitrage_pkg.symbol_arbitrage_eval_pkg.symbol_eval_w_formula import SymbolEvaluatorFormula
-from src.exchange_arbitrage_pkg.symbol_arbitrage_eval_pkg.symbol_evaluator import SymbolEvaluatorArbitrage, \
-    SymbolEvaluatorArbitrageAbstract
 from src.exchange_arbitrage_pkg.trade_runner_package.trade_runner_base import TradeRunner
 from src.exchange_arbitrage_pkg.utils.column_type_class import ColumnInfoClass
 from src.exchange_arbitrage_pkg.utils.hyper_parameters.trade_hyper_parameter_class import TradeHyperParameter
@@ -153,24 +151,12 @@ class ArbitrageMachineMakerPunch:
         # ToDo: Make a source and destination exchange list and iterate over them.
         # We just work on the first bucket for now.
         df_bucket = self.get_bucket_organized_df(df_in)
-        # df_budgeted = self._assign_budget_to_arbitrage_machines(df_bucket)
 
         df_ranked = self.symbol_evaluator_obj \
             .evaluate_then_rank_best_symbols(df_in=df_bucket)
 
-        # self.db_handler.insert_evaluated_symbols(df_ranked)
         self._insert_evaluated_symbols_to_db(df_ranked)
         self.debug_print(df_ranked)
-        # if self.debug:
-        #     print("The evaluated symbols are: ")
-        #     columns = [self.col_info_obj.symbol_col,
-        #                self.col_info_obj.price_diff_col] + \
-        #                self.exchange_pair.get_all_price_cols() + \
-        #               [self.col_info_obj.symbol_eval_col_obj.max_trade_qty_col,
-        #                self.col_info_obj.order_book_col_obj.profit_col,
-        #                self.col_info_obj.symbol_eval_col_obj.is_good_to_trade_col]
-        #
-        #     print(df_ranked[columns].to_string())
 
         df_filtered = self._filter_bad_symbols(df_ranked)
 
