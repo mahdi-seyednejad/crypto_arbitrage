@@ -65,15 +65,6 @@ class AdvanceTradeExchange(ExchangeAbstractClass):
         symbol = convert__symbol_bi_to_cb(symbol)
         return float(self.sync_client.get_product_ticker(symbol)['price'])
 
-    # async def get_coinbase_symbol_details(self, client, symbol):
-    #     df = await client.fetch_account_info()
-    #     if df is not None:
-    #         buy_precision = df['base_increment']
-    #         min_buy_amount = df['base_min_size']
-    #         min_notional = df['min_market_funds']
-    #         return buy_precision, min_buy_amount, min_notional
-    #     return None, None, None
-
     async def wait_til_receive_Async(self,
                                      symbol,
                                      expected_amount,

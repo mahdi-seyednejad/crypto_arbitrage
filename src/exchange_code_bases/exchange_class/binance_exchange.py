@@ -93,9 +93,13 @@ class BinanceExchange(ExchangeAbstractClass):
             else:
                 if second_chance:
                     if debug:
-                        print(f"Second chance for {symbol} on Binance")
+                        print(f"Second chance for {symbol} on Coinbase advance trade")
                         print("Waiting ....")
-                    await asyncio.sleep(timeout / 2)
+                    if i % 2 == 0:
+                        timeout /= 2
+                    else:
+                        timeout *= 2
+                    await asyncio.sleep(timeout)
                 else:
                     break
         return False
