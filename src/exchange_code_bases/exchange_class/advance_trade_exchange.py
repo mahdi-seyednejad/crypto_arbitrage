@@ -78,12 +78,14 @@ class AdvanceTradeExchange(ExchangeAbstractClass):
                                      symbol,
                                      expected_amount,
                                      check_interval,
-                                     timeout,
+                                     timeout_in,
                                      amount_loss,
                                      second_chance,
+                                     num_of_wait_tries,
                                      debug):
         base_symbol = get_base_currency_bi_cb(symbol)
-        for i in range(2):
+        timeout = timeout_in
+        for i in range(num_of_wait_tries):
             result = await self.async_client \
                 .wait_for_deposit_confirmation(symbol=base_symbol,
                                                expected_amount=expected_amount,
@@ -98,10 +100,16 @@ class AdvanceTradeExchange(ExchangeAbstractClass):
                     if debug:
                         print(f"Second chance for {symbol} on Coinbase advance trade")
                         print("Waiting ....")
-                    await asyncio.sleep(timeout / 2)
+                    if i % 2 == 0:
+                        timeout /= 2
+                    else:
+                        timeout *= 2
+                    await asyncio.sleep(timeout)
                 else:
                     break
         return False
+        #ToDO: use the transaction list to track the withdraw https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
+
 
     def get_latest_prices_sync(self, sample_size=None):
         return self.sync_client.get_prices_as_df(price_col=self.price_col,

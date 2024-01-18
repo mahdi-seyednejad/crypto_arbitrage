@@ -9,8 +9,9 @@ from datetime import datetime, timezone
 import websockets
 
 from src.data_pkg.multi_exchange_data_collector.coinbase_data_collector.timestamp_adjustement import TimeAdjuster
+from src.data_pkg.multi_exchange_data_collector.coinbase_data_collector.ws_cb_config import Important_Symbol_Pairs
 from src.data_pkg.ts_db.time_scale_db_operations import TimeScaleClass
-from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseAPIKeys
+from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseAPIKeys, CoinbaseAPIKeys02
 
 Threshold_Days = 200 # To define id the timestamp is too old
 Table_Name = 'order_book_cbat_ws'
@@ -99,12 +100,8 @@ async def stream_from_cbat_to_db(product_ids, api_auth_obj, func, db_obj):
 
 
 if __name__ == '__main__':
-    # get_all_crypto_pairs()
-    api_auth_obj = CoinbaseAPIKeys()
-    product_ids = ['ETH-USD']
-    # asyncio.run(stream_from_cbat(product_ids=product_ids,
-    #                              api_auth_obj=api_auth_obj,
-    #                              func=print))
+    api_auth_obj = CoinbaseAPIKeys02()
+    product_ids = Important_Symbol_Pairs
     db_obj = TimeScaleClass()
     asyncio.run(stream_from_cbat_to_db(product_ids=product_ids,
                                        api_auth_obj=api_auth_obj,

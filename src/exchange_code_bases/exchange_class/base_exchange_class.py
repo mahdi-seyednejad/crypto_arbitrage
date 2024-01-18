@@ -69,6 +69,7 @@ class ExchangeAbstractClass(ABC):
                                      timeout,
                                      amount_loss,
                                      second_chance,
+                                     num_of_wait_tries,
                                      debug):
         pass
 

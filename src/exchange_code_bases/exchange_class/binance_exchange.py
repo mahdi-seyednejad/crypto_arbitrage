@@ -76,6 +76,7 @@ class BinanceExchange(ExchangeAbstractClass):
                                      timeout,
                                      amount_loss,
                                      second_chance,
+                                     num_of_wait_tries,
                                      debug
                                      ):
         base_symbol = get_base_currency_binance(symbol)

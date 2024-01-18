@@ -249,6 +249,7 @@ class CbAdvanceTradeClient(CryptoClient):
     # def get_best_bid_ask(self, symbol): To get the more accurate price or the mid_price
     # This one also returns the mid_price https://api.coinbase.com/api/v3/brokerage/products/{product_id}
     # https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproduct
+    #https: // docs.cloud.coinbase.com / advanced - trade - api / reference / retailbrokerageapi_getbestbidask
 
 
 

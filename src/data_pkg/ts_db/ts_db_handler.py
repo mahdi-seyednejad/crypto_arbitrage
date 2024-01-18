@@ -50,12 +50,12 @@ class DbHandler:
     #                                        self.bar_length,
     #                                        self.debug)
 
-    def insert_decision_info(self, decision_dict, time_key):
-        decision_info_db_row = {k: v for k, v in decision_dict.items() if 'symbol' not in k}
-        self.ts_obj.insert_dict_to_tsdb(data_dict=decision_info_db_row,
-                                        table_name=self.decision_table,
-                                        time_key=time_key,
-                                        time_column="Date",
-                                        symbol=self.symbol,
-                                        interval=self.bar_length,
-                                        debug=self.debug)
+    # def insert_decision_info(self, decision_dict, time_key):
+    #     decision_info_db_row = {k: v for k, v in decision_dict.items() if 'symbol' not in k}
+    #     self.ts_obj.insert_dict_to_tsdb(data_dict=decision_info_db_row,
+    #                                     table_name=self.decision_table,
+    #                                     time_key=time_key,
+    #                                     time_column="Date",
+    #                                     symbol=self.symbol,
+    #                                     interval=self.bar_length,
+    #                                     debug=self.debug)

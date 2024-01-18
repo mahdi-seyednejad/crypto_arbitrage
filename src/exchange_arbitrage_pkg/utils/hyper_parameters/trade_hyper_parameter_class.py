@@ -6,7 +6,8 @@ class WaitTimeDeposit:
                  check_interval: int = 5,
                  timeout: int = 500,
                  amount_loss: float = 0.05,
-                 second_chance: bool = True):
+                 second_chance: bool = True,
+                 num_of_wait_tries: int = 4):
         """
         :param check_interval:
         :type check_interval:
@@ -19,6 +20,7 @@ class WaitTimeDeposit:
         self.timeout = timeout
         self.amount_loss = amount_loss
         self.second_chance = second_chance
+        self.num_of_wait_tries = num_of_wait_tries
 
 
 # ToDo: Put the diff df maker parameters here.

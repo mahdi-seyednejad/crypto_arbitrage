@@ -100,11 +100,6 @@ class PriceDiffExtractor:
         df = df[df[self.col_info.price_diff_col] != 0]
         df = self.first_exchange.filter_diff_df(df)
         df = self.second_exchange.filter_diff_df(df)
-        # df = df[df[self.first_exchange.price_col] > 0]
-        # df = df[df[self.second_exchange.price_col] > 0]
-        # #ToDo: Make sure the crympos are available for trading:
-        # df = df[df[self.second_exchange.price_col] > 0]
-        # Volume > 0
         return df
 
     async def create_differential_df(self):

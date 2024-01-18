@@ -39,9 +39,11 @@ async def busy_waiting_cb_test():
     was_received = await coinbase_exchange.wait_til_receive_Async(symbol=symbol,
                                                                   expected_amount=desired_quantity,
                                                                   check_interval=5,
-                                                                  timeout=420,
+                                                                  timeout_in=420,
                                                                   amount_loss=0.05,
-                                                                  second_chance=True)
+                                                                  second_chance=True,
+                                                                  num_of_wait_tries=4,
+                                                                  debug=True)
 
     print(f"Was received: {was_received}")
 

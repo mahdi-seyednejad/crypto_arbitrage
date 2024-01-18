@@ -105,6 +105,7 @@ class CrossPunch(ArbitrageMachinePunchSAbstract):
                                         timeout=self.wait_time_info.timeout,
                                         amount_loss=self.wait_time_info.amount_loss,
                                         second_chance=self.wait_time_info.second_chance,
+                                        num_of_wait_tries=self.wait_time_info.num_of_wait_tries,
                                         debug=self.debug)
 
             if was_received:
