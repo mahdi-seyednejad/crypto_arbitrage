@@ -26,7 +26,7 @@ def smoke_test_dict_to_db():
                              table_name='test_orbk_stream_to_db',
                              time_column='timestamp',
                              date_as_index=False,
-                             symbol_col='product_id',
+                             primary_keys=['product_id'],
                              debug=True)
 
     # for entry in sample_data:

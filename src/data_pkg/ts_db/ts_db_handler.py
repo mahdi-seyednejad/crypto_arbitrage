@@ -31,40 +31,15 @@ class DbHandler:
 
     def insert_stream_diff_data_df(self, df):
         self._insert_a_df_to_db(df, self.stream_diff_table)
-        # self.ts_obj.insert_df_to_tsdb(df_in=df,
-        #                               table_name=self.stream_diff_table,
-        #                               time_column=self.time_column,
-        #                               date_as_index=self.date_as_index,
-        #                               symbol_col=self.symbol_col,
-        #                               debug=self.debug)
 
     def insert_agg_diff_data_df(self, df):
         self._insert_a_df_to_db(df, self.agg_diff_table)
-        # self.ts_obj.insert_df_to_tsdb(df_in=df,
-        #                               table_name=self.agg_diff_table,
-        #                               time_column=self.time_column,
-        #                               date_as_index=self.date_as_index,
-        #                               symbol_col=self.symbol_col,
-        #                               debug=self.debug)
 
     def insert_evaluated_symbols(self, df):
         self._insert_a_df_to_db(df, self.evaluated_symbols_table)
-        # self.ts_obj.insert_df_to_tsdb(df_in=df,
-        #                               table_name=self.evaluated_symbols_table,
-        #                               time_column=self.time_column,
-        #                               date_as_index=self.date_as_index,
-        #                               symbol_col=self.symbol_col,
-        #                               debug=self.debug)
 
     def insert_order_book_info_df(self, df):
         self._insert_a_df_to_db(df, self.order_book_table)
-
-        # self.ts_obj.insert_df_to_tsdb(df_in=df,
-        #                               table_name=self.order_book_table,
-        #                               time_column=self.time_column,
-        #                               date_as_index=self.date_as_index,
-        #                               symbol_col=self.symbol_col,
-        #                               debug=self.debug)
 
     # def insert_single_row(self, row):
     #     self.ts_obj.insert_single_row_tsdb(row,
@@ -74,13 +49,13 @@ class DbHandler:
     #                                        self.date_as_index,
     #                                        self.bar_length,
     #                                        self.debug)
-    #
-    # def insert_decision_info(self, decision_dict, time_key):
-    #     decision_info_db_row = {k: v for k, v in decision_dict.items() if 'symbol' not in k}
-    #     self.ts_obj.insert_dict_to_tsdb(data_dict=decision_info_db_row,
-    #                                     table_name=self.decision_table,
-    #                                     time_key=time_key,
-    #                                     time_column="Date",
-    #                                     symbol=self.symbol,
-    #                                     interval=self.bar_length,
-    #                                     debug=self.debug)
+
+    def insert_decision_info(self, decision_dict, time_key):
+        decision_info_db_row = {k: v for k, v in decision_dict.items() if 'symbol' not in k}
+        self.ts_obj.insert_dict_to_tsdb(data_dict=decision_info_db_row,
+                                        table_name=self.decision_table,
+                                        time_key=time_key,
+                                        time_column="Date",
+                                        symbol=self.symbol,
+                                        interval=self.bar_length,
+                                        debug=self.debug)
