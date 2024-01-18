@@ -15,7 +15,7 @@ from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseA
 
 Threshold_Days = 200 # To define id the timestamp is too old
 Table_Name = 'order_book_cbat_ws'
-debug = True
+debug = False
 
 
 def create_auth_message(product_ids, api_auth_obj):

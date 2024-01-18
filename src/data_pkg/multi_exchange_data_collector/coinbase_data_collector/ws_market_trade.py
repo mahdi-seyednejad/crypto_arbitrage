@@ -13,7 +13,7 @@ from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseA
 
 
 Table_Name = 'market_trades_cbat_ws'
-debug = True
+debug = False
 
 
 def create_auth_message(product_ids, api_auth_obj):
