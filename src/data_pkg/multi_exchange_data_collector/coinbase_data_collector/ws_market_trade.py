@@ -5,6 +5,7 @@ import json
 import time
 import pandas as pd
 import websockets
+import backoff
 
 from src.data_pkg.multi_exchange_data_collector.coinbase_data_collector.ws_cb_config import Important_Symbol_Pairs
 from src.data_pkg.ts_db.time_scale_db_operations import TimeScaleClass
@@ -53,19 +54,20 @@ def to_db(data, time_column='trade_time'):
         if not event_type:
             break
         if (event_type == 'snapshot') or ("update" in event_type):
-            df = convert_trades_to_df(event, 'time', time_column)
-            tsdb_obj.insert_df_to_tsdb(df_in=df,
-                                       table_name=Table_Name,
-                                       time_column=time_column,
-                                       date_as_index=False,
-                                       primary_keys=['trade_id', 'product_id', 'side'],
-                                       debug=True)
-            if debug:
-                print("df.tail():\n", df.tail().to_string())
+            if len(event['trades'])> 0:
+                df = convert_trades_to_df(event, 'time', time_column)
+                tsdb_obj.insert_df_to_tsdb(df_in=df,
+                                           table_name=Table_Name,
+                                           time_column=time_column,
+                                           date_as_index=False,
+                                           primary_keys=['trade_id', 'product_id', 'side'],
+                                           debug=debug)
+                if debug:
+                    print("df.tail():\n", df.tail().to_string())
     if debug:
         print("Done with current snapshot!")
 
-
+@backoff.on_exception(backoff.expo, websockets.WebSocketException, max_tries=8)
 async def stream_from_cbat_to_db(product_ids, api_auth_obj, func, db_obj):
     url_websocket = 'wss://advanced-trade-ws.coinbase.com'
     message = create_auth_message(product_ids, api_auth_obj)

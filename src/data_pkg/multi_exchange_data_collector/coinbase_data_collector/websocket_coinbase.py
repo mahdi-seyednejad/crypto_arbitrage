@@ -4,9 +4,9 @@ import hmac
 import json
 import time
 import pandas as pd
-from datetime import datetime, timezone
-
 import websockets
+import backoff
+
 
 from src.data_pkg.multi_exchange_data_collector.coinbase_data_collector.timestamp_adjustement import TimeAdjuster
 from src.data_pkg.multi_exchange_data_collector.coinbase_data_collector.ws_cb_config import Important_Symbol_Pairs
@@ -79,13 +79,14 @@ def to_db(data, time_column='event_time'):
                                        time_column=time_column,
                                        date_as_index=False,
                                        primary_keys=['product_id', 'price_level', 'side'],
-                                       debug=True)
+                                       debug=debug)
             if debug:
                 print("df.tail():\n", df.tail().to_string())
     if debug:
         print("Done with current snapshot!")
 
 
+@backoff.on_exception(backoff.expo, websockets.WebSocketException, max_tries=8)
 async def stream_from_cbat_to_db(product_ids, api_auth_obj, func, db_obj):
     url_websocket = 'wss://advanced-trade-ws.coinbase.com'
     message = create_auth_message(product_ids, api_auth_obj)

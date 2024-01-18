@@ -71,7 +71,7 @@ class AdvanceTradeExchange(ExchangeAbstractClass):
                                      check_interval,
                                      timeout_in,
                                      amount_loss,
-                                     second_chance,
+                                     second_chance, #ToDo: Remove this.
                                      num_of_wait_tries,
                                      debug):
         base_symbol = get_base_currency_bi_cb(symbol)
