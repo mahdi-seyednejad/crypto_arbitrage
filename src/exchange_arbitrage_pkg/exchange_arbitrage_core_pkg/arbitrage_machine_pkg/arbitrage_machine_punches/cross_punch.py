@@ -1,3 +1,5 @@
+import backoff
+
 from src.exchange_arbitrage_pkg.broker_config.exchange_names import ExchangeNames
 from src.exchange_arbitrage_pkg.exchange_arbitrage_core_pkg.arbitrage_machine_pkg.arbitrage_machine_punches.ex_machine_punch_abstract import \
     ArbitrageMachinePunchSAbstract
@@ -33,6 +35,7 @@ class CrossPunch(ArbitrageMachinePunchSAbstract):
         # self.quantity_deduction_percent = quantity_deduction_percent
         # self.threshold_quantity = self.desired_quantity * self.quantity_deduction_percent
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=8)
     async def decide_to_buy_amount(self, current_symbol_balance):
         # Determine if buying is necessary and the amount to buy
         binance_exchange = pick_exchange(exchange_name=ExchangeNames.Binance,
@@ -46,6 +49,7 @@ class CrossPunch(ArbitrageMachinePunchSAbstract):
                                                                      available_balance=current_symbol_balance)
         return should_buy, quantity_to_buy
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=8)
     async def _check_to_own(self, order_log):
         #ToDo: Get an optio to see if it is allowed to use the crypto we already have.
         current_symbol_balance = await self.checker.check_available_crypto(self.src_exchange_platform,
@@ -78,6 +82,7 @@ class CrossPunch(ArbitrageMachinePunchSAbstract):
                                                                            self.symbol)
         return current_symbol_balance, order_log
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=8)
     async def _move_it(self, current_symbol_balance, order_log):
         balance_after_check_buy = float(current_symbol_balance)
         amount_to_move = min(balance_after_check_buy, self.desired_quantity) - self.withdraw_fee
@@ -88,6 +93,7 @@ class CrossPunch(ArbitrageMachinePunchSAbstract):
         order_log[f'order_move_{self.symbol}'] = order_move
         return amount_to_move, order_log
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=8)
     async def _wait_then_sell(self, amount_to_move, order_log):
         #ToDo: This needs to be another component.
         if order_log[f'order_move_{self.symbol}'] is None:

@@ -7,6 +7,7 @@ import pandas as pd
 import websockets
 import backoff
 
+from src.data_pkg.multi_exchange_data_collector.coinbase_data_collector.cb_db_utils import random_backoff_generator
 from src.data_pkg.multi_exchange_data_collector.coinbase_data_collector.ws_cb_config import Important_Symbol_Pairs
 from src.data_pkg.ts_db.time_scale_db_operations import TimeScaleClass
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseAPIKeys
@@ -67,7 +68,8 @@ def to_db(data, time_column='trade_time'):
     if debug:
         print("Done with current snapshot!")
 
-@backoff.on_exception(backoff.expo, websockets.WebSocketException, max_tries=8)
+
+@backoff.on_exception(random_backoff_generator(2, 5), Exception, max_tries=8)
 async def stream_from_cbat_to_db(product_ids, api_auth_obj, func, db_obj):
     url_websocket = 'wss://advanced-trade-ws.coinbase.com'
     message = create_auth_message(product_ids, api_auth_obj)

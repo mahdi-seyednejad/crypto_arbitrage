@@ -9,12 +9,12 @@ class TradeRunner:
     def __init__(self,
                  exchange_machines: List[ArbitrageMachinePunches],
                  debug: bool):
-        self.exchange_machines = exchange_machines
+        self.arbitrage_machines = exchange_machines
         self.debug = debug
 
     async def run_all_trades(self):
         tasks = []
-        for ex_machine in self.exchange_machines:
+        for ex_machine in self.arbitrage_machines:
             try:
                 arbitrage_trade = ex_machine.create_arbitrage_function()
                 # Example usage, you would replace 'symbol' and 'quantity' with actual values
@@ -33,7 +33,7 @@ class TradeRunner:
         try:
             await self.run_all_trades()
             # Close all client sessions
-            for ex_machine in self.exchange_machines:
+            for ex_machine in self.arbitrage_machines:
                 if hasattr(ex_machine.src_exchange_platform, 'close'):
                     await ex_machine.src_exchange_platform.close()
                 if hasattr(ex_machine.dst_exchange_platform, 'close'):

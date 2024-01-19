@@ -64,16 +64,9 @@ class ArbitrageMachinePunches:
             withdraw_fee=withdraw_fee,
             min_acceptable_profit=1,
             ex_budget=budget)
-        # return calculate_quantity_new_2(
-        #     max_profitable_trading_volume=self.row[self.col_info_obj.order_book_col_obj.trading_volume_col],
-        #     ex_price=self.row[exchange.price_col],
-        #     withdraw_fee=self.row[self.col_info_obj.withdraw_fee_col],
-        #     min_acceptable_profit=1,
-        #     ex_budget=exchange.get_budget_sync())
+
 
     def is_on_expensive_platform(self, desired_quantity):
-        # Check it
-        # return self.row[self.col_info_obj.price_diff_col] > 0
         dst_avail_crypto = self.dst_exchange_platform.get_available_amount_sync(self.symbol)
         return dst_avail_crypto['balance'] > desired_quantity
 

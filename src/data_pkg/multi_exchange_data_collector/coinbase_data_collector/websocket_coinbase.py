@@ -7,7 +7,7 @@ import pandas as pd
 import websockets
 import backoff
 
-
+from src.data_pkg.multi_exchange_data_collector.coinbase_data_collector.cb_db_utils import random_backoff_generator
 from src.data_pkg.multi_exchange_data_collector.coinbase_data_collector.timestamp_adjustement import TimeAdjuster
 from src.data_pkg.multi_exchange_data_collector.coinbase_data_collector.ws_cb_config import Important_Symbol_Pairs
 from src.data_pkg.ts_db.time_scale_db_operations import TimeScaleClass
@@ -38,13 +38,14 @@ def create_auth_message(product_ids, api_auth_obj):
     }
     return message
 
-def truncate_timestamp(timestamp):
-    """ Truncate the fractional seconds in the timestamp to six decimal places. """
-    if '.' in timestamp:
-        main_part, fractional_part = timestamp.split('.')
-        fractional_part = fractional_part[:6]  # Keep only six decimal places
-        return f'{main_part}.{fractional_part}'
-    return timestamp
+
+# def truncate_timestamp(timestamp):
+#     """ Truncate the fractional seconds in the timestamp to six decimal places. """
+#     if '.' in timestamp:
+#         main_part, fractional_part = timestamp.split('.')
+#         fractional_part = fractional_part[:6]  # Keep only six decimal places
+#         return f'{main_part}.{fractional_part}'
+#     return timestamp
 
 
 tsdb_obj = TimeScaleClass()
@@ -86,7 +87,8 @@ def to_db(data, time_column='event_time'):
         print("Done with current snapshot!")
 
 
-@backoff.on_exception(backoff.expo, websockets.WebSocketException, max_tries=8)
+# @backoff.on_exception(backoff.expo, websockets.WebSocketException, max_tries=100)
+@backoff.on_exception(random_backoff_generator(2, 5), Exception, max_tries=8)
 async def stream_from_cbat_to_db(product_ids, api_auth_obj, func, db_obj):
     url_websocket = 'wss://advanced-trade-ws.coinbase.com'
     message = create_auth_message(product_ids, api_auth_obj)
@@ -96,8 +98,6 @@ async def stream_from_cbat_to_db(product_ids, api_auth_obj, func, db_obj):
             response = await ws.recv()
             data = json.loads(response)
             to_db(data)
-
-
 
 
 if __name__ == '__main__':
