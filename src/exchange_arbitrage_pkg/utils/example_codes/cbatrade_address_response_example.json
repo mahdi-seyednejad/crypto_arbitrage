@@ -1,0 +1,46 @@
+{
+  'id': 'SOME ID',
+  'address': 'SOMETHING ADDRESS',
+  'address_info': {
+    'address': 'SOMETHING ADDRESS'
+  },
+  'name': None,
+  'created_at': '2023-11-30T02:57:32Z',
+  'updated_at': '2023-11-30T02:57:32Z',
+  'network': 'bitcoin',
+  'uri_scheme': 'bitcoin',
+  'resource': 'address',
+  'resource_path': '/v2/accounts/SOMETHING/addresses/SOME ID',
+  'warnings': [
+    {
+      'type': 'correct_address_warning',
+      'title': 'Only send Bitcoin (BTC) to this address',
+      'details': 'Sending any other asset, including Bitcoin Cash (BCH), will result in permanent loss.',
+      'image_url': 'https://www.coinbase.com/assets/addresses/global-receive-warning-----....png',
+      'options': [
+        {
+          'text': 'I understand',
+          'style': 'primary',
+          'id': 'dismiss'
+        }
+      ]
+    }
+  ],
+  'qr_code_image_url': 'https://dynamic-assets.coinbase.com/....png',
+  'address_label': 'BTC address',
+  'default_receive': True,
+  'deposit_uri': 'SOMETHING ADDRESS',
+  'callback_url': None,
+  'share_address_copy': {
+    'line1': 'SOMETHING ADDRESS',
+    'line2': 'This is a bitcoin network address. Do not send BTC over any other network to this address or your funds may be lost. Do not send Bitcoin Cash (BCH) to this address.'
+  },
+  'receive_subtitle': 'BTC',
+  'inline_warning': {
+    'text': 'Only send Bitcoin (BTC) to this address',
+    'tooltip': {
+      'title': 'Bitcoin (BTC)',
+      'subtitle': 'This is a bitcoin network address. Do not send BTC over any other network to this address or your funds may be lost. Do not send Bitcoin Cash (BCH) to this address.'
+    }
+  }
+}

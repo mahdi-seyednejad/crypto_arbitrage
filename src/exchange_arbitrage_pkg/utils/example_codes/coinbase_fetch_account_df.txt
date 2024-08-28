@@ -1,0 +1,22 @@
+The data from the Coinbase Pro API for a product (in this case, 'BTC-USD') represents various trading and product-specific details:
+
+- `id`: Identifier for the product, typically in the format 'Base-Quote'.
+- `base_currency`: The base currency of the pair (e.g., 'BTC').
+- `quote_currency`: The quote currency of the pair (e.g., 'USD').
+- `quote_increment`: The minimum increment for the quote currency.
+- `base_increment`: The smallest unit of the base currency that can be traded.
+- `display_name`: Human-readable name of the product.
+- `min_market_funds`: Minimum amount (in quote currency) required to place an order.
+- `margin_enabled`: Indicates if margin trading is enabled for the product.
+- `post_only`: If set to true, indicates that the order should only make liquidity.
+- `limit_only`: If true, only limit orders are allowed.
+- `cancel_only`: If true, orders can only be canceled; no new orders can be placed.
+- `status`: Current trading status of the product (e.g., 'online').
+- `status_message`: Additional status information or messages.
+- `trading_disabled`: Indicates if trading is currently disabled for the product.
+- `fx_stablecoin`: Indicates if the product involves a stablecoin.
+- `max_slippage_percentage`: Maximum slippage percentage allowed for the product.
+- `auction_mode`: Indicates if the product is in auction mode.
+- `high_bid_limit_percentage`: A parameter related to bid limits, often used in auction-based trading.
+
+This information is crucial for understanding the trading constraints and rules associated with a specific product on Coinbase Pro.
