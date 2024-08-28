@@ -223,14 +223,14 @@ def rank_symbols_for_arbitrage(symbols, quantities, buy_prices, sell_prices, wit
 
 
 def calculate_symbol_profit_old(order_book_df,
-                            withdrawal_fee,
-                            src_exchange_name,
-                            dst_exchange_name,
-                            transaction_fee_rate=0.001,
-                            price_col='price',
-                            volume_col='volume',
-                            side_col='side',
-                            exchange_name_col='exchange_name'):
+                                withdrawal_fee,
+                                src_exchange_name,
+                                dst_exchange_name,
+                                transaction_fee_rate=0.001,
+                                price_col='price',
+                                volume_col='volume',
+                                side_col='side',
+                                exchange_name_col='exchange_name'):
     order_book_src_df = order_book_df[order_book_df[exchange_name_col] == src_exchange_name]
     # order_book_src_df_buy = order_book_src_df[order_book_src_df[side_col] == 'buy']
     order_book_src_df_sell = order_book_src_df[order_book_src_df[side_col] == 'sell']
@@ -241,9 +241,9 @@ def calculate_symbol_profit_old(order_book_df,
     orbk_dst_buy_tuples = order_book_dst_df_buy[[price_col, volume_col]].to_records(index=False).tolist()
 
     total_volume, net_profit = calculate_arbitrage(order_book_sell_src=orbk_src_sell_tuples,
-                                                  order_book_buy_dst=orbk_dst_buy_tuples,
-                                                  withdrawal_fee=withdrawal_fee,
-                                                  transaction_fee_rate=transaction_fee_rate)
+                                                   order_book_buy_dst=orbk_dst_buy_tuples,
+                                                   withdrawal_fee=withdrawal_fee,
+                                                   transaction_fee_rate=transaction_fee_rate)
     return total_volume, net_profit
 
 
@@ -281,7 +281,8 @@ def calculate_arbitrage(order_book_sell_src, order_book_buy_dst, transaction_fee
                     dst_volume -= executable_volume
 
                     # Update the destination order book with the new remaining volume
-                    order_book_buy_dst = [(price, vol - executable_volume if price == dst_price else vol) for price, vol in order_book_buy_dst]
+                    order_book_buy_dst = [(price, vol - executable_volume if price == dst_price else vol) for price, vol
+                                          in order_book_buy_dst]
 
                 # If no more volume is left in the source, break the inner loop
                 if src_volume <= 0:
@@ -291,7 +292,6 @@ def calculate_arbitrage(order_book_sell_src, order_book_buy_dst, transaction_fee
     net_profit = total_profit - withdrawal_fee
 
     return total_volume, net_profit
-
 
 # # Sample order book data
 # order_book_src = [(10000, 2), (10050, 1.5)]  # (price, volume) tuples

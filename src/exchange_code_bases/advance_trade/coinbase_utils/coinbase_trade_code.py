@@ -16,10 +16,10 @@ async def buy_sell_coinbase(client, symbol, side, quantity, price=None, debug=Fa
                                                      side=side,
                                                      price=price)
     # Assumes create_order method takes 'buy' or 'sell' as order_type, and price can be None for market order
-    order =  await client.create_order(order_type=side,
-                                     amount=adjusted_quantity,
-                                     currency=symbol,
-                                     price=price)
+    order = await client.create_order(order_type=side,
+                                      amount=adjusted_quantity,
+                                      currency=symbol,
+                                      price=price)
     if debug:
         print(f"On Coinbase: {side} order status for {symbol}: {order}")
     return order
@@ -29,13 +29,13 @@ async def buy_sell_coinbase(client, symbol, side, quantity, price=None, debug=Fa
 async def withdraw_coinbase(client, symbol, amount, crypto_address, debug=False):
     base_currency = get_base_from_pair_coinbase(symbol)
     balance = await check_balance_coinbase(client, symbol, debug)
+
     def inner_amount_Adjuster(amount_in):
         return adjust_withdrawal_amount(symbol, amount_in, balance)
 
     amount_adjusted = inner_amount_Adjuster(amount)
     return await client.withdraw_to_address_persistent(crypto_address, amount_adjusted, base_currency,
                                                        inner_amount_Adjuster, 8)
-
 
 
 # Function to get deposit address for a given currency

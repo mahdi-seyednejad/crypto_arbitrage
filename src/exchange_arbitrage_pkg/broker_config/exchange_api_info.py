@@ -35,6 +35,30 @@ class CoinbaseAPIKeys03(APIAuthClass):
         self.is_testnet = False
 
 
+class CoinbaseAPIKeys04(APIAuthClass):
+    def __init__(self):
+        super().__init__()
+        self.api_key = config("cb_hft_key_04")
+        self.secret_key = config("cb_hft_secret_04")
+        self.is_testnet = False
+
+
+class CoinbaseAPIKeys05(APIAuthClass):
+    def __init__(self):
+        super().__init__()
+        self.api_key = config("cb_hft_key_05")
+        self.secret_key = config("cb_hft_secret_05")
+        self.is_testnet = False
+
+
+class CoinbaseAPIKeys06(APIAuthClass):
+    def __init__(self):
+        super().__init__()
+        self.api_key = config("cb_hft_key_06")
+        self.secret_key = config("cb_hft_secret_06")
+        self.is_testnet = False
+
+
 class CoinbaseAPIKeysSandBox(APIAuthClass):
     def __init__(self):
         super().__init__()
@@ -42,7 +66,7 @@ class CoinbaseAPIKeysSandBox(APIAuthClass):
         self.secret_key = str(os.environ.get("coinbase_secret"))
         self.is_testnet = True
 
-
+##### Binance API Keys ########
 class BinanceAPIKeysReadOnly(APIAuthClass):
     def __init__(self):
         super().__init__()
@@ -58,14 +82,6 @@ class BinanceAPIKeysTestNet(APIAuthClass):
         self.secret_key = str(os.environ.get("binance_secret_testnet"))
         self.is_testnet = True
 
-
-# class CoinbaseProAPIKeys(APIAuthClass):
-#     def __init__(self):
-#         super().__init__()
-#         self.api_key = str(os.environ.get("Coinbase_pro_api_key"))
-#         self.secret_key = str(os.environ.get("Coinbase_pro_decret_key"))
-#         self.pass_phrase = str(os.environ.get("Cpinbase_pro_pass_phrase"))
-#         self.is_testnet = False
 
 
 class BinanceAPIKeys(APIAuthClass):
