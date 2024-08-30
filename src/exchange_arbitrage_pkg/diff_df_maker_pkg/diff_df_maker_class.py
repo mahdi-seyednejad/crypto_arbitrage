@@ -22,7 +22,7 @@ class PriceDiffExtractor:
     def __init__(self,
                  exchange_pair: ExchangePair,
                  col_info: ColumnInfoClass,
-                 diff_db_handler: DbHandler,
+                 diff_db_handler: Optional[DbHandler],
                  experiment_sample_size: Optional[int] = None,
                  debug=True):
         self.first_exchange = exchange_pair.get_first_exchange()
@@ -166,7 +166,7 @@ def print_for_testing(df):
 
 if __name__ == '__main__':
     DEBUG = True
-    sample_size = None  # Just for testing
+    sample_size = 50  # Just for testing
     run_number = 4
 
     col_obj = ColumnInfoClass()
@@ -177,7 +177,7 @@ if __name__ == '__main__':
         time_column=col_obj.current_time_col,
         date_as_index=False,
         table_names=TableNames(),
-        debug=True)
+        debug=False)
 
     example_exchange_pair = ExchangePair(first_exchange=binance_exchange,
                                          second_exchange=coinbase_exchange)
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     arb_bot = PriceDiffExtractor(exchange_pair=example_exchange_pair,
                                  experiment_sample_size=sample_size,
                                  col_info=col_obj,
-                                 diff_db_handler=db_handler,
+                                 diff_db_handler=None,
                                  debug=DEBUG)
 
     asyncio.run(arb_bot.run(run_number=run_number,

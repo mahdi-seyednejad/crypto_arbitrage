@@ -1,6 +1,9 @@
 import requests
 import pandas as pd
 from decimal import Decimal
+import time
+import hmac
+import hashlib
 
 from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import APIAuthClass
 from src.exchange_arbitrage_pkg.utils.data_utils.coinbace_fetch_df import fetch_account_info_to_dataframe
@@ -132,25 +135,58 @@ class CbAdvanceTradeClient(CryptoClient):
                 all_addresses[currency] = address_info
         return all_addresses
 
-    def fetch_budget(self, currency='USD'):
-        url = f'{self.base_url}/api/v3/brokerage/accounts'
-        response = requests.get(url, auth=self.auth)
-        if response.status_code == 200:
-            accounts = response.json().get('accounts', [])
-            df = pd.DataFrame(accounts)
-            # Extract currency code from the dictionaries in the 'currency' column
-            res = df.loc[df['currency'] == currency]
-            if not res.empty:
-                # return res.iloc[0]['available_balance']['value']
-                return {
-                    'balance': res.iloc[0]['available_balance']['value'],
-                    'currency': res.iloc[0]['available_balance']['currency']
-                }
-            else:
-                return {'message': 'Currency not found'}
+
+    def fetch_budget(self, currency='USD', max_retries=3, retry_delay=1):
+        # url = f'{self.base_url}/api/v3/brokerage/accounts'
+        all_accounts = []
+        next_cursor = None
+        retry_count = 0
+
+        while True:
+            params = {'cursor': next_cursor} if next_cursor else {}
+
+            # Refresh authentication for each request
+            auth = self.auth  # Assume this method refreshes the authentication
+
+            # response = requests.get(url, auth=auth, params=params)
+            response = self.cb_auth('GET', '/api/v3/brokerage/accounts', params=params)
+            accounts = response.get('accounts', [])
+            all_accounts.extend(accounts)
+            if not response.get('has_next', False):
+                break
+            next_cursor = response['cursor']
+
+        df = pd.DataFrame(all_accounts)
+
+        if df.empty:
+            return {'message': 'No accounts found'}
+
+        # Process the 'currency' column
+        df['currency_code'] = df['currency'].apply(lambda x: x['code'] if isinstance(x, dict) else x)
+
+        # Filter for the requested currency
+        res = df[df['currency_code'] == currency]
+
+        if not res.empty:
+            return {
+                'balance': res.iloc[0]['available_balance']['value'],
+                'currency': res.iloc[0]['available_balance']['currency'],
+                'total_accounts': len(df),
+                'unique_currencies': df['currency_code'].nunique()
+            }
         else:
-            # Handle error
-            return {'error': response.json(), 'status_code': response.status_code}
+            # If the requested currency is not found, return all balances
+            all_balances = df.apply(lambda row: {
+                'currency': row['currency_code'],
+                'balance': row['available_balance']['value']
+            }, axis=1).tolist()
+
+            return {
+                'message': f'{currency} not found',
+                'all_balances': all_balances,
+                'total_accounts': len(df),
+                'unique_currencies': df['currency_code'].nunique()
+            }
 
     def create_order(self, order_type, amount, currency, price=None):
         if 'USD' in currency:

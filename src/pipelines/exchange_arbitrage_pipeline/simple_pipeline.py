@@ -19,7 +19,8 @@ socket.getaddrinfo = getaddrinfo_ipv4_only
 
 
 from src.exchange_arbitrage_pkg.diff_df_maker_pkg.diff_df_maker_class import PriceDiffExtractor
-from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseAPIKeys, BinanceAPIKeysHFT01
+from src.exchange_arbitrage_pkg.broker_config.exchange_api_info import CoinbaseAPIKeys, BinanceAPIKeysHFT01, \
+    CoinbaseAPIKeys02
 from src.exchange_arbitrage_pkg.exchange_arbitrage_executors.arbit_machine_maker_punch import ArbitrageMachineMakerPunch
 from src.exchange_code_bases.exchange_class.advance_trade_exchange import AdvanceTradeExchange
 from src.exchange_code_bases.exchange_class.binance_exchange import BinanceExchange
@@ -40,14 +41,15 @@ class SimplePipeline:
         self.sleep_time = self.trade_hyper_parameters.diff_maker_config.sleep_time
 
         self.exchange_pair = ExchangePair(first_exchange=BinanceExchange(BinanceAPIKeysHFT01()),
-                                          second_exchange=AdvanceTradeExchange(CoinbaseAPIKeys()))
+                                          second_exchange=AdvanceTradeExchange(CoinbaseAPIKeys02()))
         self.price_cols = self.exchange_pair.get_all_price_cols()
         self.column_info_obj = ColumnInfoClass()
-        self.db_handler = DbHandler(
-            time_column=self.column_info_obj.current_time_col,
-            date_as_index=False,
-            table_names=table_names,
-            debug=self.debug_obj.db_handler_debug)
+        # self.db_handler = DbHandler(
+        #     time_column=self.column_info_obj.current_time_col,
+        #     date_as_index=False,
+        #     table_names=table_names,
+        #     debug=self.debug_obj.db_handler_debug)
+        self.db_handler = None
 
     def _get_diff_df_maker_obj(self):
         return PriceDiffExtractor(exchange_pair=self.exchange_pair,

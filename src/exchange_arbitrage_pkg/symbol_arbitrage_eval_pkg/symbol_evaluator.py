@@ -32,7 +32,7 @@ class SymbolEvaluatorArbitrageAbstract(ABC):
         self.all_symbols_order_book_df = pd.DataFrame()
         self.db_handler = db_handler
         self.current_time = None
-        self.debug=debug
+        self.debug = debug
 
     @abstractmethod
     def evaluate_then_rank_best_symbols(self, df_in):
