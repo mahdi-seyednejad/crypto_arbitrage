@@ -87,6 +87,8 @@ This project is licensed under the MIT License. See the [LICENSE](docs/license.m
 
 For support, feature requests, or general inquiries:
 - Open an issue on our [GitHub Issues](https://github.com/yourusername/crypto-arbitrage/issues) page
+- Join our [Discord Server](https://discord.gg/UZsKa8Zc) for support, discussions, and to stay up-to-date with the latest news about the project!
+
 
 ## Keywords
 
