@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8080
 
 # Define environment variable
-ENV NAME World
+#ENV NAME World
 
 # Run the application
 CMD ["python", "main.py"]

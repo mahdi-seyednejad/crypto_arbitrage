@@ -19,7 +19,7 @@ For a detailed explanation of how arbitrage works, check out our [Arbitrage Expl
 ## Key Features
 
 - Real-time arbitrage detection between Coinbase and Binance
-- Custom "Mahdiable" algorithm for limit order book analysis
+- Custom "Mahdiable😁" algorithm for limit order book analysis to find profitable crypto trades
 - Asynchronous processing for high-speed execution
 - Multi-API support for load balancing
 - TimescaleDB integration for efficient data storage and analysis
@@ -38,7 +38,7 @@ Our unique arbitrage strategies are inspired by boxing techniques, offering a bl
 2. **Hook Punch**: A complex strategy utilizing intermediate cryptocurrencies
 3. **Kung Fu Punch**: A strategic pause in trading activities
 
-For an in-depth look at these strategies, including diagrams and example scenarios, see our [Trading Strategies Guide](docs/trading_strategies.pdf).
+For an in-depth look at these strategies, including diagrams and example scenarios, see our [Trading Strategies Guide](docs/trading_strategies.md).
 
 ### Basic Operations
 
@@ -55,7 +55,7 @@ For an in-depth look at these strategies, including diagrams and example scenari
 - **Architecture**: Monolithic with asynchronous processes
 
 For a detailed technical overview, including system requirements and dependencies, refer to our [Technical Documentation](docs/technical_specs.md).
-
+The software design and its algorithms can be used to make arbitrage between any other pairs of exchanges.
 ## Getting Started
 
 For a step-by-step guide on setting up and running the project, please refer to our [Installation Guide](docs/installation.md).
@@ -70,7 +70,6 @@ Quick start:
 
 We welcome contributions from the crypto and developer community. Whether you're improving algorithms, adding exchange support, or enhancing documentation, your input is valuable.
 
-Please read our [Contribution Guidelines](CONTRIBUTING.md) before submitting any pull requests.
 
 ## Future Development Roadmap
 
@@ -79,18 +78,15 @@ Please read our [Contribution Guidelines](CONTRIBUTING.md) before submitting any
 - Advanced arbitrage algorithms and machine learning integration
 - Development of a user-friendly graphical interface
 
-For a detailed roadmap and upcoming features, see our [Project Roadmap](docs/roadmap.md).
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE.md) file for details.
+This project is licensed under the MIT License. See the [LICENSE](docs/license.md) file for details.
 
 ## Contact and Support
 
 For support, feature requests, or general inquiries:
 - Open an issue on our [GitHub Issues](https://github.com/yourusername/crypto-arbitrage/issues) page
-- Email us at: support@cryptoarbitrage.example.com
-- Join our [Discord community](https://discord.gg/cryptoarbitrage)
 
 ## Keywords
 
