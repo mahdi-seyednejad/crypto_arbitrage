@@ -7,14 +7,14 @@
 
 This software is a cryptocurrency exchange arbitrage tool for educational and research purposes. While it can be used as a financial tool, it is not intended to provide financial advice. Use at your own risk. Always consult with a qualified financial advisor before making any investment decisions.
 
-For a complete understanding of the risks involved, please read our [Risk Disclosure Document](docs/risk_disclosure.md).
+For a complete understanding of the risks involved, please read our [Risk Disclosure Document](docs/risk-disclosure.md).
 
 ## Introduction
 
 Welcome to the Cryptocurrency Exchange Arbitrage project, an open-source tool designed for arbitrage between Coinbase (Advance Trade) and Binance. This Python-based software identifies and executes potential arbitrage opportunities in the crypto market.
 ![image](https://github.com/user-attachments/assets/0cc4204a-3e03-4aeb-8013-d39e9d7a1abc)
 
-For a detailed explanation of how arbitrage works, check out our [Arbitrage Explained](docs/arbitrage_explained.md) document.
+For a detailed explanation of how arbitrage works, check out our [Arbitrage Explained](docs/arbitrage-explained.md) document.
 
 ## Key Features
 
@@ -38,7 +38,7 @@ Our unique arbitrage strategies are inspired by boxing techniques, offering a bl
 2. **Hook Punch**: A complex strategy utilizing intermediate cryptocurrencies
 3. **Kung Fu Punch**: A strategic pause in trading activities
 
-For an in-depth look at these strategies, including diagrams and example scenarios, see our [Trading Strategies Guide](docs/trading_strategies.md).
+For an in-depth look at these strategies, including diagrams and example scenarios, see our [Trading Strategies Guide](docs/trading-strategies.md).
 
 ### Basic Operations
 
@@ -54,7 +54,7 @@ For an in-depth look at these strategies, including diagrams and example scenari
 - **Database**: TimescaleDB (PostgreSQL-based)
 - **Architecture**: Monolithic with asynchronous processes
 
-For a detailed technical overview, including system requirements and dependencies, refer to our [Technical Documentation](docs/technical_specs.md).
+For a detailed technical overview, including system requirements and dependencies, refer to our [Technical Documentation](docs/technical-specs.md).
 The software design and its algorithms can be used to make arbitrage between any other pairs of exchanges.
 ## Getting Started
 
