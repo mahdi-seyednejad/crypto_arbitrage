@@ -23,7 +23,7 @@ from src.exchange_arbitrage_pkg.utils.hyper_parameters.trade_hyper_parameter_cla
     WaitTimeDeposit, DiffMakerRunConfig
 
 
-def main_job():
+def main_job_multi_api():
     debug_obj = DebugClass(price_diff_debug=True,
                            arbitrage_machine_debug=True,
                            db_handler_debug=False)
@@ -66,7 +66,7 @@ def main_job():
 
 
 if __name__ == '__main__':
-    main_job()
+    main_job_multi_api()
 
 # ToDo: Check to see why it shows error about not having enough money.
 # ToDo: If there is no secondary crypto to move from an exchange to another one,

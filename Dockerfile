@@ -17,4 +17,4 @@ EXPOSE 8080
 ENV NAME World
 
 # Run the application
-CMD ["python", "src/jobs/ex_arbitrage_jobs/simple_job.py"]
+CMD ["python", "main.py"]
