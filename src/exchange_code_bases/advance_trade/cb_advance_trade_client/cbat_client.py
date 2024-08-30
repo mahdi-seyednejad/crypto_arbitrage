@@ -187,25 +187,6 @@ class CbAdvanceTradeClient(CryptoClient):
                 'total_accounts': len(df),
                 'unique_currencies': df['currency_code'].nunique()
             }
-    # def fetch_budget(self, currency='USD'):
-    #     url = f'{self.base_url}/api/v3/brokerage/accounts'
-    #     response = requests.get(url, auth=self.auth)
-    #     if response.status_code == 200:
-    #         accounts = response.json().get('accounts', [])
-    #         df = pd.DataFrame(accounts)
-    #         # Extract currency code from the dictionaries in the 'currency' column
-    #         res = df.loc[df['currency'] == currency]
-    #         if not res.empty:
-    #             # return res.iloc[0]['available_balance']['value']
-    #             return {
-    #                 'balance': res.iloc[0]['available_balance']['value'],
-    #                 'currency': res.iloc[0]['available_balance']['currency']
-    #             }
-    #         else:
-    #             return {'message': 'Currency not found'}
-    #     else:
-    #         # Handle error
-    #         return {'error': response.json(), 'status_code': response.status_code}
 
     def create_order(self, order_type, amount, currency, price=None):
         if 'USD' in currency:

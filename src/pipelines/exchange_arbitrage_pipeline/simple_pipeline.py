@@ -44,11 +44,12 @@ class SimplePipeline:
                                           second_exchange=AdvanceTradeExchange(CoinbaseAPIKeys02()))
         self.price_cols = self.exchange_pair.get_all_price_cols()
         self.column_info_obj = ColumnInfoClass()
-        self.db_handler = DbHandler(
-            time_column=self.column_info_obj.current_time_col,
-            date_as_index=False,
-            table_names=table_names,
-            debug=self.debug_obj.db_handler_debug)
+        # self.db_handler = DbHandler(
+        #     time_column=self.column_info_obj.current_time_col,
+        #     date_as_index=False,
+        #     table_names=table_names,
+        #     debug=self.debug_obj.db_handler_debug)
+        self.db_handler = None
 
     def _get_diff_df_maker_obj(self):
         return PriceDiffExtractor(exchange_pair=self.exchange_pair,
