@@ -2,7 +2,7 @@
 
 This work is licensed under a modified version of the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0), with additional terms specific to the Cryptocurrency Exchange Arbitrage Tool.
 
-Copyright (c) [year] [Your Name or Your Organization's Name]
+Copyright (c) 2024, Mahdi Seyednezhad, Ph.D.
 
 ## Basic Rights and Restrictions (Based on CC BY-NC 4.0)
 
