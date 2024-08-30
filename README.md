@@ -7,13 +7,12 @@
 
 This software is a cryptocurrency exchange arbitrage tool for educational and research purposes. While it can be used as a financial tool, it is not intended to provide financial advice. Use at your own risk. Always consult with a qualified financial advisor before making any investment decisions.
 
-For a complete understanding of the risks involved, please read our [Risk Disclosure Document](docs/risk_disclosure.pdf).
+For a complete understanding of the risks involved, please read our [Risk Disclosure Document](docs/risk_disclosure.md).
 
 ## Introduction
 
 Welcome to the Cryptocurrency Exchange Arbitrage project, an open-source tool designed for arbitrage between Coinbase (Advance Trade) and Binance. This Python-based software identifies and executes potential arbitrage opportunities in the crypto market.
-
-![Arbitrage Visualization](images/arbitrage_flow.png)
+![image](https://github.com/user-attachments/assets/0cc4204a-3e03-4aeb-8013-d39e9d7a1abc)
 
 For a detailed explanation of how arbitrage works, check out our [Arbitrage Explained](docs/arbitrage_explained.md) document.
 
